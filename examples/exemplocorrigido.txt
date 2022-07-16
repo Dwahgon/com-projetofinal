@@ -1,0 +1,66 @@
+program programaexemplo;
+    var teste : boolean;
+    var teste2 : boolean;
+    var valor1 : integer;
+    var valor2 : integer;
+    var valor_r : real;
+    var vetor : array[0 .. 10] of integer;
+    var matriz : array[0 .. 10] of integer;
+    var retorno_main : integer;
+
+    function main() : integer;
+    var a,g,i : integer;
+    begin
+        a := 5;
+        vetor[a] := 80;
+        print(vetor[a]);
+
+        print("Digite um numero: \n");
+        read(a);
+// Isto daqui é um comentário
+        while i<10 do
+            begin
+                i := inc(i,1);
+                a := inc(a,1);
+            end
+        ;
+
+        print("Incrementado algumas vezes fica \" a \"\n");
+
+        for g := 1 ; g <= 10; g := g + 1 do
+            print(".")
+        ;
+
+        print("\n");
+
+        if a = 15 then
+            print("A=15\n")
+        ;
+        if (a=18) or (a=20) then
+            print("A igual a 18 ou 20\n")
+        ;
+
+        if i=100 then
+            print("Decorando o texto...\n")
+        else
+            a:=3
+        ;
+
+        print("\n");
+    end;
+
+    function inc(var x, n : integer) : integer;
+    begin
+        return x+n;
+    end;
+
+begin
+    teste := false;
+    teste2 := 0;
+    valor1 := 0;
+    valor2 := 0;
+    valor_r := 0.0;
+    vetor := {0,0,0,0,0,0,0,0,0,0};
+    retorno_main := main();
+end
+.

@@ -28,6 +28,7 @@ void yyerror(const char* s);
 extern int linha;
 extern int coluna;
 
+code_list *cl;
 
 %}
 
@@ -158,8 +159,8 @@ literal: T_BOOL_LIT  //{printf("Literal\n");}
 parametro: T_DEF_VAR lista_de_ids T_DEF_TIPO T_SIMPLES  //{printf("Parâmetro\n");}
     | lista_de_ids T_DEF_TIPO T_SIMPLES  //{printf("Parâmetro\n");}
 
-prog: T_PROG T_ID {cl_insert_header($2);} 
-    T_FIM_INSTRUCAO corpo T_FIM_PROG {cl_insert_footer();}
+prog: T_PROG T_ID {cl_insert_header(cl, $2);} 
+    T_FIM_INSTRUCAO corpo T_FIM_PROG {cl_insert_footer(cl);}
 
 
 retorno: T_RETORNO expressao  //{printf("Retorno\n");}
@@ -196,6 +197,8 @@ char *outfilename_new(char* filename){
 
 int main(int argc, char* argv[]){
     char *outfilename;
+
+    cl = cl_malloc();
     
     setlocale (LC_ALL, "");
 
@@ -222,9 +225,10 @@ int main(int argc, char* argv[]){
     } while(!feof(yyin));
 
     printf(MSG_COMPILE_SUCCESS);
-    cl_write(outfilename);
+    cl_write(cl, outfilename);
     /* ts_print(tabela); */
 
+    cl_free(cl);
     free(outfilename);
     return 0;
 }

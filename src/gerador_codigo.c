@@ -3,63 +3,100 @@
 #include <string.h>
 #include <stdio.h>
 
-code_list *cl_malloc(char *code);
-void cl_free(code_list *cl);
+code_list_node *cln_malloc(char *code);
+void cln_free(code_list_node *cln);
+void cln_assert_not_null(code_list_node *cln);
 
-code_list *clist = NULL;
+void cl_assert_not_null(code_list *cl);
 
-code_list *cl_malloc(char *code)
+code_list *cl_malloc()
 {
-    code_list *cl = (code_list *)malloc(sizeof(code_list));
-    if (!(cl = (code_list *)malloc(sizeof(code_list)))){
+    code_list *cl;
+    if (!(cl = (code_list *)malloc(sizeof(code_list))))
+    {
         fprintf(stderr, ERRMSG_MALLOC_CL);
         exit(1);
     }
-    cl->code_string = (char *)calloc(strlen(code), sizeof(char));
-    cl->next = NULL;
-    strcpy(cl->code_string, code);
+    cl->start = NULL;
+    cl->end = NULL;
     return cl;
 }
 
-void cl_insert(char *code)
+code_list_node *cln_malloc(char *code)
 {
-    code_list *cl = cl_malloc(code);
-    if (!clist)
+    code_list_node *cln;
+    if (!(cln = (code_list_node *)malloc(sizeof(code_list_node))))
     {
-        clist = cl;
+        fprintf(stderr, ERRMSG_MALLOC_CLN);
+        exit(1);
+    }
+    if (!(cln->code_string = (char *)calloc(strlen(code), sizeof(char))))
+    {
+        fprintf(stderr, ERRMSG_MALLOC_CLN_CODESTRING);
+        exit(1);
+    }
+    strcpy(cln->code_string, code);
+    cln->next = NULL;
+    return cln;
+}
+
+void cl_insert(code_list *cl, char *code)
+{
+    cl_assert_not_null(cl);
+
+    code_list_node *newcln = cln_malloc(code);
+    if (!cl->start)
+        cl->start = newcln;
+
+    if (!cl->end)
+    {
+        cl->end = newcln;
         return;
     }
 
-    code_list *l;
-    for (l = clist; l->next != NULL; l = l->next)
-        ;
-    l->next = cl;
+    cl->end->next = newcln;
+    cl->end = newcln;
+}
+
+void cln_free(code_list_node *cln)
+{
+    cln_assert_not_null(cln);
+
+    free(cln->code_string);
+    free(cln);
+}
+
+void cl_clear(code_list *cl)
+{
+    cl_assert_not_null(cl);
+
+    code_list_node *tmp, *l = cl->start;
+    while (l != NULL)
+    {
+        tmp = l;
+        l = l->next;
+        cln_free(tmp);
+    }
 }
 
 void cl_free(code_list *cl)
 {
-    free(cl->code_string);
+    cl_assert_not_null(cl);
+
+    cl_clear(cl);
     free(cl);
 }
 
-void cl_clear()
+void cl_insert_header(code_list *cl, char *classname)
 {
-    code_list *tmp;
-    while (clist != NULL)
-    {
-        tmp = clist;
-        clist = clist->next;
-        cl_free(tmp);
-    }
-}
+    cl_assert_not_null(cl);
 
-void cl_insert_header(char *classname)
-{
     char class[] = HEADER_CLASS;
     char after_class[] = HEADER_AFTER_CLASS;
     char *header;
 
-    if (!(header = (char *)calloc(strlen(class) + strlen(classname) + strlen(after_class), sizeof(char)))){
+    if (!(header = (char *)calloc(strlen(class) + strlen(classname) + strlen(after_class), sizeof(char))))
+    {
         fprintf(stderr, ERRMSG_MALLOC_HEADER);
         exit(1);
     }
@@ -67,32 +104,53 @@ void cl_insert_header(char *classname)
     strcat(header, class);
     strcat(header, classname);
     strcat(header, after_class);
-    
-    // printf("%s", header);
-    
-    cl_insert(header);
-    
+
+    cl_insert(cl, header);
+
     free(header);
 }
 
-void cl_insert_footer(){
-    cl_insert(FOOTER);
+void cl_insert_footer(code_list *cl)
+{
+    cl_assert_not_null(cl);
+    cl_insert(cl, FOOTER);
 }
 
-void cl_write(char *filename)
+void cl_write(code_list *cl, char *filename)
 {
+    cl_assert_not_null(cl);
 
     FILE *file;
-    if(!(file = fopen(filename, "w"))){
+    if (!(file = fopen(filename, "w")))
+    {
         fprintf(stderr, ERRMSG_FOPEN_OUTFILE);
         return;
     }
 
-    for (code_list *l = clist; l; l=l->next){
-        fprintf(file, "%s", l->code_string);
+    for (code_list_node *cln = cl->start; cln; cln = cln->next)
+    {
+        fprintf(file, "%s", cln->code_string);
     }
 
-    if (fclose(file)){
+    if (fclose(file))
+    {
         fprintf(stderr, ERRMSG_FCLOSE_OUTFILE);
+    }
+}
+
+void cl_assert_not_null(code_list *cl)
+{
+    if (!cl)
+    {
+        fprintf(stderr, ERRMSG_CL_NULL);
+        exit(1);
+    }
+}
+void cln_assert_not_null(code_list_node *cln)
+{
+    if (!cln)
+    {
+        fprintf(stderr, ERRMSG_CLN_NULL);
+        exit(1);
     }
 }

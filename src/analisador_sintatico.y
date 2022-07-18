@@ -6,9 +6,17 @@
 #include <string.h>
 #include <locale.h>
 #include <string.h>
+#include "gerador_codigo.h"
 // #include "tabela_simbolos.h"
 
 #define YY_DECL int yylex()
+#define DEFAULT_OUT_FILE "a.j"
+#define WARNING_NO_OUT_FILE "Caminho de arquivo de saída não foi especificada. Usando arquivo padrão " \
+                            DEFAULT_OUT_FILE \
+                            "\n"
+#define MSG_COMPILE_SUCCESS "Analisado sem erros\n"
+#define ERRMSG_COMPILE "Erro sintático na linha %d e coluna %d: %s\n"
+#define ERRMSG_MALLOC_OUTFILENAME "Houve um erro ao tentar alocar memória para o nome do arquivo de saída\n"
 
 extern int yylex();
 extern int yyparse();
@@ -27,10 +35,11 @@ extern int coluna;
 	int ival;
 	float fval;
     unsigned char bval;
+    char* idval;
 }
 
 %token T_ATRIBUICAO
-%token T_ID
+%token<idval> T_ID
 %token T_OP_ADD
 %token T_OP_MULT
 %token T_OP_REL
@@ -149,7 +158,8 @@ literal: T_BOOL_LIT  //{printf("Literal\n");}
 parametro: T_DEF_VAR lista_de_ids T_DEF_TIPO T_SIMPLES  //{printf("Parâmetro\n");}
     | lista_de_ids T_DEF_TIPO T_SIMPLES  //{printf("Parâmetro\n");}
 
-prog: T_PROG T_ID T_FIM_INSTRUCAO corpo T_FIM_PROG //{printf("Regra do programa\n");}
+prog: T_PROG T_ID {cl_insert_header($2);} 
+    T_FIM_INSTRUCAO corpo T_FIM_PROG {cl_insert_footer();}
 
 
 retorno: T_RETORNO expressao  //{printf("Retorno\n");}
@@ -173,27 +183,54 @@ variavel: T_ID seletor  //{printf("Variável\n");}
 
 %%
 
+char *outfilename_new(char* filename);
+char *outfilename_new(char* filename){
+    char *newout;
+    if (!(newout  = (char*) calloc(strlen(filename), sizeof(char)))){
+        fprintf(stderr, ERRMSG_MALLOC_OUTFILENAME);
+        exit(1);
+    }
+    strcpy(newout, filename);
+    return newout;
+}
+
 int main(int argc, char* argv[]){
+    char *outfilename;
+    
     setlocale (LC_ALL, "");
+
     /* tabela = ts_malloc(); */
-    ++argv, --argc;
-    if(argc > 0)
-        yyin = fopen(argv[0], "r");
-    else
-        yyin = stdin;
+    ++argv, --argc; // Ignore first argument
+    switch(argc){
+        case 0:
+            printf(WARNING_NO_OUT_FILE);
+            outfilename = outfilename_new(DEFAULT_OUT_FILE);
+            yyin = stdin;
+            break;
+        case 1:
+            printf(WARNING_NO_OUT_FILE);
+            outfilename = outfilename_new(DEFAULT_OUT_FILE);
+            yyin = fopen(argv[0], "r");
+            break;
+        default:
+            outfilename = outfilename_new(argv[1]);
+            yyin = fopen(argv[0], "r");
+    }
 
     do {
         yyparse();
     } while(!feof(yyin));
 
-    printf("Analisado sem erros\n");
+    printf(MSG_COMPILE_SUCCESS);
+    cl_write(outfilename);
     /* ts_print(tabela); */
 
+    free(outfilename);
     return 0;
 }
 
 void yyerror(const char* s) {
-	fprintf(stderr, "Erro sintático na linha %d e coluna %d: %s\n", linha, coluna, s);
+	fprintf(stderr, ERRMSG_COMPILE, linha, coluna, s);
     /* ts_mostrar_erros(tabela); */
 	exit(1);
 }

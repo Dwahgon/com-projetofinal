@@ -208,6 +208,7 @@ DIGITO  [0-9]
 
 {LETRA}({LETRA}|{DIGITO})*  {
     avancar_coluna(yytext);
+    yylval.idval = yytext;
     return T_ID;
 }
 

@@ -2,6 +2,7 @@
 
 %{
 #include <string.h>
+#include "tabela_simbolos.h"
 #include "analisador_sintatico.tab.h"
 #include "contador_linha.h"
 
@@ -80,12 +81,12 @@ DIGITO  [0-9]
 
 "function"  {
     avancar_coluna(yytext);
-    return T_FUNC;
+    // return T_FUNC;
 }
 
 "procedure" {
     avancar_coluna(yytext);
-    return T_PROC;
+    // return T_PROC;
 }
 
 ":" {
@@ -175,7 +176,7 @@ DIGITO  [0-9]
 
 "return"    {
     avancar_coluna(yytext);
-    return T_RETORNO;
+    // return T_RETORNO;
 }
 
 \"([^\\\"]|\\.)*\"   {
@@ -208,7 +209,7 @@ DIGITO  [0-9]
 
 {LETRA}({LETRA}|{DIGITO})*  {
     avancar_coluna(yytext);
-    yylval.idval = yytext;
+    yylval.idval = strdup(yytext);
     return T_ID;
 }
 

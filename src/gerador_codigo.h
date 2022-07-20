@@ -2,6 +2,7 @@
 #define GERADOR_CODIGO_H
 
 #define ERRMSG_MALLOC_HEADER "Houve um erro ao tentar alocar memória para o código do header\n"
+#define ERRMSG_MALLOC_CMDSTR "Houve um erro ao tentar alocar memória para um código\n"
 #define ERRMSG_MALLOC_CL "Houve um erro ao tentar alocar espaço na memória para a lista de comandos\n"
 #define ERRMSG_MALLOC_CLN "Houve um erro ao tentar alocar espaço na memória para um nó da lista de comandos"
 #define ERRMSG_MALLOC_CLN_CODESTRING "Houve um erro ao tentar alocar espaço na memória para o texto de um comando"
@@ -20,6 +21,11 @@
 #define HEADER_CLASS ".class public "
 #define FOOTER "return\n" \
                ".end method"
+#define BIPUSH "bipush "
+#define ISTORE "istore "
+#define ILOAD "iload "
+#define IADD "iadd\n"
+#define IMUL "imul\n"
 
 typedef struct _code_list_node
 {
@@ -36,6 +42,9 @@ typedef struct _code_list
 code_list *cl_malloc();
 void cl_insert_header(code_list *cl, char *classname);
 void cl_insert_footer(code_list *cl);
+void cl_insert_istore(code_list *cl, int var_id);
+void cl_insert_bipush(code_list *cl, int value);
+void cl_insert_iload(code_list *cl, int var_id);
 void cl_insert(code_list *cl, char *code);
 void cl_clear(code_list *cl);
 void cl_free(code_list *cl);

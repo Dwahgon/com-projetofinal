@@ -6,6 +6,7 @@
 code_list_node *cln_malloc(char *code);
 void cln_free(code_list_node *cln);
 void cln_assert_not_null(code_list_node *cln);
+char *malloc_cat_cmd_int_endl(char *cmd, int v);
 
 void cl_assert_not_null(code_list *cl);
 
@@ -116,6 +117,33 @@ void cl_insert_footer(code_list *cl)
     cl_insert(cl, FOOTER);
 }
 
+void cl_insert_istore(code_list *cl, int var_id)
+{
+    cl_assert_not_null(cl);
+
+    char *cmd = malloc_cat_cmd_int_endl(ISTORE, var_id);
+    cl_insert(cl, cmd);
+    free(cmd);
+}
+
+void cl_insert_bipush(code_list *cl, int value)
+{
+    cl_assert_not_null(cl);
+
+    char *cmd = malloc_cat_cmd_int_endl(BIPUSH, value);
+    cl_insert(cl, cmd);
+    free(cmd);
+}
+
+void cl_insert_iload(code_list *cl, int var_id)
+{
+    cl_assert_not_null(cl);
+
+    char *cmd = malloc_cat_cmd_int_endl(ILOAD, var_id);
+    cl_insert(cl, cmd);
+    free(cmd);
+}
+
 void cl_write(code_list *cl, char *filename)
 {
     cl_assert_not_null(cl);
@@ -153,4 +181,26 @@ void cln_assert_not_null(code_list_node *cln)
         fprintf(stderr, ERRMSG_CLN_NULL);
         exit(1);
     }
+}
+
+char *malloc_cat_cmd_int_endl(char *cmd, int v)
+{
+    char int_s[32];
+    char *command;
+    int commandsize;
+
+    snprintf(int_s, 32, "%d", v);
+
+    commandsize = strlen(cmd) + strlen(int_s) + 1;
+    if (!(command = (char *)calloc(commandsize, sizeof(char))))
+    {
+        fprintf(stderr, ERRMSG_MALLOC_CMDSTR);
+        exit(EXIT_FAILURE);
+    }
+
+    strcat(command, cmd);
+    strcat(command, int_s);
+    strcat(command, "\n");
+
+    return command;
 }

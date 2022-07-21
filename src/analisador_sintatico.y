@@ -29,6 +29,7 @@ extern int coluna;
 
 code_list *cl;
 tabelasimbolos *ts;
+int symbolsadded = 0;
 
 %}
 
@@ -40,6 +41,7 @@ tabelasimbolos *ts;
     char* opcommand;
     relops relval;
     simbolo *symbolval;
+    tipo_simbolo symboltypeval;
 }
 
 %token T_ATRIBUICAO
@@ -60,15 +62,15 @@ tabelasimbolos *ts;
 %token T_DEF_TIPO
 %token T_FIM_INSTRUCAO
 %token T_DEF_VAR
-%token T_DEF_ARRAY
-%token T_DEF_ARRAY_TIPO
+/* %token T_DEF_ARRAY
+%token T_DEF_ARRAY_TIPO */
 %token T_SELETOR_INI
 %token T_SELETOR_FIM
 %token T_COMCOMP_INI
 %token T_COMCOMP_FIM
 %token T_FIM_PROG
 %token T_STRING_LIT
-%token T_SIMPLES
+%token<symboltypeval> T_SIMPLES
 %token T_FOR
 %token T_WHILE
 %token T_LOOP_END
@@ -77,10 +79,11 @@ tabelasimbolos *ts;
 %token T_INI_ARRAY_LIT
 %token T_FIM_ARRAY_LIT
 %token T_PROG
-%token T_INTERVALO
+/* %token T_INTERVALO */
 %right T_CONDICIONAL_FIM T_CONDICIONAL_ELSE
 
 %type <symbolval> variavel
+%type <symboltypeval> tipo
 
 %start prog;
 
@@ -117,7 +120,14 @@ declaracao: declaracao_de_variavel  //{printf("Declaração\n");}
 
 /* declaracao_de_procedimento: T_PROC T_ID T_INI_PARENTESES lista_de_parametros T_FIM_PARENTESES T_FIM_INSTRUCAO corpo  //{printf("Declaração de procedimento\n");} */
 
-declaracao_de_variavel: T_DEF_VAR lista_de_ids T_DEF_TIPO tipo  //{printf("Declaração de variável\n");}
+declaracao_de_variavel: T_DEF_VAR {symbolsadded = 0;} lista_de_ids T_DEF_TIPO tipo  {
+    linhatabelasimbolos *lts = ts->ult;
+    for (int i = 0; i < symbolsadded; i++){
+        lts->simb.tipo = $5;
+        printf("%s : %d\n", lts->simb.nome, lts->simb.tipo);
+        lts = lts->ant;
+    }
+    }
 
 declaracoes: %empty //{printf("Declarações\n");}
     | declaracao T_FIM_INSTRUCAO declaracoes  //{printf("Declarações\n");}
@@ -148,8 +158,10 @@ lista_de_expressoes_2: %empty
     | T_SEPARADOR_INSTRUCAO expressao lista_de_expressoes_2
 
 lista_de_ids: T_ID {
-    if(!ts_find_symbol(ts, $1))
+    if(!ts_find_symbol(ts, $1)){
         ts_inserir(ts, $1, VAZIO);
+        symbolsadded++;
+    }
     } 
     lista_de_ids_2 //{printf("Lista de ids\n");}
 
@@ -185,11 +197,11 @@ termo: fator termo_2  //{printf("Termo\n");}
 termo_2: %empty
     | T_OP_MULT fator {cl_insert(cl, $1);} termo_2
 
-tipo: T_SIMPLES  //{printf("Tipo\n");}
-    | tipo_agregado
+tipo: T_SIMPLES 
+    /* | tipo_agregado */
 
-tipo_agregado: T_DEF_ARRAY T_DEF_ARRAY_TIPO tipo  //{printf("Tipo agregado\n");}
-    | T_DEF_ARRAY T_SELETOR_INI T_INT_LIT T_INTERVALO T_INT_LIT T_SELETOR_FIM T_DEF_ARRAY_TIPO tipo  //{printf("Tipo agregado\n");}
+/* tipo_agregado: T_DEF_ARRAY T_DEF_ARRAY_TIPO tipo  //{printf("Tipo agregado\n");}
+    | T_DEF_ARRAY T_SELETOR_INI T_INT_LIT T_INTERVALO T_INT_LIT T_SELETOR_FIM T_DEF_ARRAY_TIPO tipo  //{printf("Tipo agregado\n");} */
 
 variavel: T_ID seletor {
     simbolo *s;

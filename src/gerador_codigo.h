@@ -26,6 +26,26 @@
 #define ILOAD "iload "
 #define IADD "iadd\n"
 #define IMUL "imul\n"
+#define IDIV "idiv\n"
+#define ISUB "isub\n"
+#define IOR "ior\n"
+#define IAND "iand\n"
+#define IFGT "ifgt "
+#define IFLT "iflt "
+#define IFGE "ifge "
+#define IFLE "ifle "
+#define IFNE "ifne "
+#define IFEQ "ifeq "
+
+typedef enum _relops
+{
+    EQ,
+    NEQ,
+    LSS,
+    GRT,
+    LEQ,
+    GEQ
+} relops;
 
 typedef struct _code_list_node
 {
@@ -45,6 +65,9 @@ void cl_insert_footer(code_list *cl);
 void cl_insert_istore(code_list *cl, int var_id);
 void cl_insert_bipush(code_list *cl, int value);
 void cl_insert_iload(code_list *cl, int var_id);
+void cl_insert_goto(code_list *cl, int label);
+void cl_insert_if(code_list *cl, char *ifcom, int labelnum);
+void cl_insert_oprel(code_list *cl, relops op);
 void cl_insert(code_list *cl, char *code);
 void cl_clear(code_list *cl);
 void cl_free(code_list *cl);

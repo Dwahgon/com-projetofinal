@@ -2,6 +2,7 @@
 
 %{
 #include <string.h>
+#include "gerador_codigo.h"
 #include "tabela_simbolos.h"
 #include "analisador_sintatico.tab.h"
 #include "contador_linha.h"
@@ -46,16 +47,40 @@ DIGITO  [0-9]
 
 "+"|"-"|"or"    {
     avancar_coluna(yytext);
+    if(strcmp("+", yytext) == 0)
+        yylval.opcommand = IADD;
+    else if(strcmp("-", yytext) == 0)
+        yylval.opcommand = ISUB;
+    else if(strcmp("or", yytext) == 0)
+        yylval.opcommand = IOR;
     return T_OP_ADD;
 }
 
 "*"|"/"|"and"   {
     avancar_coluna(yytext);
+    if(strcmp("*", yytext) == 0)
+        yylval.opcommand = IMUL;
+    else if(strcmp("/", yytext) == 0)
+        yylval.opcommand = IDIV;
+    else if(strcmp("and", yytext) == 0)
+        yylval.opcommand = IAND;
     return T_OP_MULT;
 }
 
 "<"|">"|"<="|">="|"="|"<>" {
     avancar_coluna(yytext);
+    if(strcmp("<", yytext) == 0)
+        yylval.relval = LSS;
+    else if(strcmp(">", yytext) == 0)
+        yylval.relval = GRT;
+    else if(strcmp("<=", yytext) == 0)
+        yylval.relval = LEQ;
+    else if(strcmp(">=", yytext) == 0)
+        yylval.relval = GEQ;
+    else if(strcmp("=", yytext) == 0)
+        yylval.relval = EQ;
+    else if(strcmp("<>", yytext) == 0)
+        yylval.relval = NEQ;
     return T_OP_REL;
 }
 
@@ -209,7 +234,7 @@ DIGITO  [0-9]
 
 {LETRA}({LETRA}|{DIGITO})*  {
     avancar_coluna(yytext);
-    yylval.idval = strdup(yytext);
+    yylval.tokenval = strdup(yytext);
     return T_ID;
 }
 

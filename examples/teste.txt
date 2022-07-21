@@ -1,10 +1,14 @@
 program programabasico;
-var variavel, variavel2 : integer;
-var variavel3 : integer;
+var variavel : integer;     // 0
+var variavel2 : integer;    // 1
+var variavel3 : integer;    // 2
+var variavel4 : integer;    // 3
 begin
     variavel := 3;
     variavel2 := 10;
     variavel3 := 1+1;
+    variavel := 1-1;
     variavel2 := variavel3 * (4 + variavel);
+    variavel4 := 1 > 1;
 end
 .

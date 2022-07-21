@@ -36,15 +36,17 @@ tabelasimbolos *ts;
 	int ival;
 	float fval;
     unsigned char bval;
-    char* idval;
+    char* tokenval;
+    char* opcommand;
+    relops relval;
     simbolo *symbolval;
 }
 
 %token T_ATRIBUICAO
-%token<idval> T_ID
-%token T_OP_ADD
-%token T_OP_MULT
-%token T_OP_REL
+%token<tokenval> T_ID
+%token<opcommand> T_OP_ADD
+%token<opcommand> T_OP_MULT
+%token<relval> T_OP_REL
 %token<bval> T_BOOL_LIT
 %token<ival> T_INT_LIT
 %token<fval> T_FLOAT_LIT
@@ -121,12 +123,12 @@ declaracoes: %empty //{printf("Declarações\n");}
     | declaracao T_FIM_INSTRUCAO declaracoes  //{printf("Declarações\n");}
 
 expressao: expressao_simples  //{printf("Expressão\n");}
-    | expressao_simples T_OP_REL expressao_simples //{printf("Expressão\n");}
+    | expressao_simples T_OP_REL expressao_simples {cl_insert_oprel(cl, $2);} //{printf("Expressão\n");}
 
 expressao_simples: termo expressao_simples_2  //{printf("Expressão simples\n");}
 
 expressao_simples_2: %empty
-    | T_OP_ADD termo {cl_insert(cl, IADD);} expressao_simples_2
+    | T_OP_ADD termo {cl_insert(cl, $1);} expressao_simples_2
 
 fator: variavel {if ($1) cl_insert_iload(cl, $1->id);}
     | literal  //{printf("Fator\n");}
@@ -181,7 +183,7 @@ seletor: %empty //{printf("Seletor\n");}
 termo: fator termo_2  //{printf("Termo\n");}
 
 termo_2: %empty
-    | T_OP_MULT fator {cl_insert(cl, IMUL);} termo_2
+    | T_OP_MULT fator {cl_insert(cl, $1);} termo_2
 
 tipo: T_SIMPLES  //{printf("Tipo\n");}
     | tipo_agregado

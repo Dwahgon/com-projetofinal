@@ -7,8 +7,11 @@ code_list_node *cln_malloc(char *code);
 void cln_free(code_list_node *cln);
 void cln_assert_not_null(code_list_node *cln);
 char *malloc_cat_cmd_int_endl(char *cmd, int v);
+int generate_label();
 
 void cl_assert_not_null(code_list *cl);
+
+int labelnum = 0;
 
 code_list *cl_malloc()
 {
@@ -135,6 +138,16 @@ void cl_insert_bipush(code_list *cl, int value)
     free(cmd);
 }
 
+void cl_insert_if(code_list *cl, char *ifcom, int labelnum)
+{
+    cl_assert_not_null(cl);
+    char command[64];
+
+    snprintf(command, 64, "%sL%d\n", ifcom, labelnum);
+
+    cl_insert(cl, command);
+}
+
 void cl_insert_iload(code_list *cl, int var_id)
 {
     cl_assert_not_null(cl);
@@ -142,6 +155,43 @@ void cl_insert_iload(code_list *cl, int var_id)
     char *cmd = malloc_cat_cmd_int_endl(ILOAD, var_id);
     cl_insert(cl, cmd);
     free(cmd);
+}
+
+void cl_insert_oprel(code_list *cl, relops op)
+{
+    cl_assert_not_null(cl);
+
+    char cmd[256];
+    int lbl1 = generate_label();
+    int lbl2 = generate_label();
+    switch (op)
+    {
+    case EQ:
+        cl_insert_if(cl, IFEQ, lbl1);
+        break;
+    case NEQ:
+        cl_insert_if(cl, IFNE, lbl1);
+        break;
+    case LSS:
+        cl_insert_if(cl, IFLT, lbl1);
+        break;
+    case GRT:
+        cl_insert_if(cl, IFGT, lbl1);
+        break;
+    case LEQ:
+        cl_insert_if(cl, IFLE, lbl1);
+        break;
+    case GEQ:
+        cl_insert_if(cl, IFGE, lbl1);
+        break;
+    default:
+        //@todo: jogar erro
+        break;
+    }
+
+    snprintf(cmd, 256, "iconst_0\ngoto L%d\nL%d:\niconst_1\nL%d:\n", lbl2, lbl1, lbl2);
+
+    cl_insert(cl, cmd);
 }
 
 void cl_write(code_list *cl, char *filename)
@@ -203,4 +253,9 @@ char *malloc_cat_cmd_int_endl(char *cmd, int v)
     strcat(command, "\n");
 
     return command;
+}
+
+int generate_label()
+{
+    return labelnum++;
 }

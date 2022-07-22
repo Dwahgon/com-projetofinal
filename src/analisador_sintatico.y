@@ -110,9 +110,9 @@ comando: atribuicao  //{printf("Comando\n");}
 comando_composto: T_COMCOMP_INI lista_de_comandos T_COMCOMP_FIM  //{printf("Comando composto\n");}
 
 condicional: condicional_ini {cl_insert_lbl(cl, $1);} 
-    | condicional_ini T_CONDICIONAL_ELSE {cl_insert_goto(cl, $2);cl_insert_lbl(cl, $1);} comando {cl_insert_lbl(cl, $2);}
+    | condicional_ini T_CONDICIONAL_ELSE {cl_insert_goto(cl, $2);cl_insert_lbl(cl, $1);} comando T_FIM_INSTRUCAO {cl_insert_lbl(cl, $2);}
 
-condicional_ini: T_CONDICIONAL_INI expressao T_CONDICIONAL_FIM {cl_insert_if(cl, IFEQ, $1);} comando {$$ = $1;}
+condicional_ini: T_CONDICIONAL_INI expressao T_CONDICIONAL_FIM {cl_insert_if(cl, IFEQ, $1);} comando T_FIM_INSTRUCAO {$$ = $1;}
 
 corpo: declaracoes comando_composto  //{printf("Corpo\n");}
 

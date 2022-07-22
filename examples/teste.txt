@@ -12,20 +12,21 @@ begin
     variavel4 := 1 > 1;
 
     if variavel = 2 then
-        variavel := 10
+        variavel := 10;
     else
-        variavel := 50
+        variavel := 50;
     ;
 
     if variavel = 2 then
-        variavel := 10
+        variavel := 10;
     ;
 
     if variavel = 2 then
         if variavel = 10 then
-            variavel := 10
+            variavel := 10;
+        ;
     else
-        variavel := 50
+        variavel := 50;
     ;
 end
 .

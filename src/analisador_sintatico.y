@@ -29,7 +29,6 @@ extern int coluna;
 
 code_list *cl;
 tabelasimbolos *ts;
-int symbolsadded = 0;
 
 %}
 
@@ -85,6 +84,8 @@ int symbolsadded = 0;
 %type <symbolval> variavel
 %type <symboltypeval> tipo
 %type <ival> condicional_ini
+%type <ival> lista_de_ids
+%type <ival> lista_de_ids_2
 
 %start prog;
 
@@ -123,13 +124,13 @@ declaracao: declaracao_de_variavel  //{printf("Declaração\n");}
 
 /* declaracao_de_procedimento: T_PROC T_ID T_INI_PARENTESES lista_de_parametros T_FIM_PARENTESES T_FIM_INSTRUCAO corpo  //{printf("Declaração de procedimento\n");} */
 
-declaracao_de_variavel: T_DEF_VAR {symbolsadded = 0;} lista_de_ids T_DEF_TIPO tipo  {
-    linhatabelasimbolos *lts = ts->ult;
-    for (int i = 0; i < symbolsadded; i++){
-        lts->simb.tipo = $5;
-        // printf("%s : %d\n", lts->simb.nome, lts->simb.id);
-        lts = lts->ant;
-    }
+declaracao_de_variavel: T_DEF_VAR lista_de_ids T_DEF_TIPO tipo  {
+        linhatabelasimbolos *lts = ts->ult;
+        for (int i = 0; i < $2; i++){
+            lts->simb.tipo = $4;
+            printf("(%d)%s : %d\n", lts->simb.id, lts->simb.nome, lts->simb.tipo);
+            lts = lts->ant;
+        }
     }
 
 declaracoes: %empty //{printf("Declarações\n");}
@@ -160,16 +161,16 @@ lista_de_expressoes: %empty //{printf("Lista de expressões\n");}
 lista_de_expressoes_2: %empty
     | T_SEPARADOR_INSTRUCAO expressao lista_de_expressoes_2
 
-lista_de_ids: T_ID {
-    if(!ts_find_symbol(ts, $1)){
-        ts_inserir(ts, $1, VAZIO);
-        symbolsadded++;
-    }
+lista_de_ids: T_ID 
+    lista_de_ids_2 {
+        if(!ts_find_symbol(ts, $1)){
+            ts_inserir(ts, $1, VAZIO);
+            $$ = $2 + 1;
+        }
     } 
-    lista_de_ids_2 //{printf("Lista de ids\n");}
 
-lista_de_ids_2: %empty
-    | T_SEPARADOR_INSTRUCAO lista_de_ids
+lista_de_ids_2: %empty {$$ = 0;}
+    | T_SEPARADOR_INSTRUCAO lista_de_ids {$$ = $2;}
 
 /* lista_de_parametros: parametro lista_de_parametros_2  //{printf("Lista de parâmetos\n");} */
     /* | lista_de_parametros_2  //{printf("Lista de parâmetos\n");} */

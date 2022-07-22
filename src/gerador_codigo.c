@@ -47,8 +47,6 @@ void cl_insert(code_list *cl, char *code)
 {
     cl_assert_not_null(cl);
 
-    printf("%s\n", code);
-
     code_list_node *newcln = cln_malloc(code);
     if (!cl->start)
         cl->start = newcln;

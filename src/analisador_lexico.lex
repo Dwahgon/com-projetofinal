@@ -185,6 +185,7 @@ DIGITO  [0-9]
 
 "if"    {
     avancar_coluna(yytext);
+    yylval.ival = generate_label();
     return T_CONDICIONAL_INI;
 }
 
@@ -195,6 +196,7 @@ DIGITO  [0-9]
 
 "else"  {
     avancar_coluna(yytext);
+    yylval.ival = generate_label();
     return T_CONDICIONAL_ELSE;
 }
 

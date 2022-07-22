@@ -36,6 +36,12 @@
 #define IFLE "ifle "
 #define IFNE "ifne "
 #define IFEQ "ifeq "
+#define IFCMPGT "if_icmpgt "
+#define IFCMPLT "if_icmplt "
+#define IFCMPGE "if_icmpge "
+#define IFCMPLE "if_icmple "
+#define IFCMPNE "if_icmpne "
+#define IFCMPEQ "if_icmpeq "
 
 typedef enum _relops
 {
@@ -66,11 +72,13 @@ void cl_insert_istore(code_list *cl, int var_id);
 void cl_insert_bipush(code_list *cl, int value);
 void cl_insert_iload(code_list *cl, int var_id);
 void cl_insert_goto(code_list *cl, int label);
+void cl_insert_lbl(code_list *cl, int label);
 void cl_insert_if(code_list *cl, char *ifcom, int labelnum);
 void cl_insert_oprel(code_list *cl, relops op);
 void cl_insert(code_list *cl, char *code);
 void cl_clear(code_list *cl);
 void cl_free(code_list *cl);
 void cl_write(code_list *cl, char *filename);
+int generate_label();
 
 #endif

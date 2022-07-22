@@ -54,9 +54,9 @@ int symbolsadded = 0;
 %token<fval> T_FLOAT_LIT
 %token T_INI_PARENTESES
 %token T_FIM_PARENTESES
-%token T_CONDICIONAL_INI
+%token<ival> T_CONDICIONAL_INI
 %token T_CONDICIONAL_FIM
-%token T_CONDICIONAL_ELSE
+%token<ival> T_CONDICIONAL_ELSE
 /* %token T_FUNC */
 /* %token T_PROC */
 %token T_DEF_TIPO
@@ -80,10 +80,11 @@ int symbolsadded = 0;
 %token T_FIM_ARRAY_LIT
 %token T_PROG
 /* %token T_INTERVALO */
-%right T_CONDICIONAL_FIM T_CONDICIONAL_ELSE
+/* %right T_CONDICIONAL_FIM T_CONDICIONAL_ELSE */
 
 %type <symbolval> variavel
 %type <symboltypeval> tipo
+%type <ival> condicional_ini
 
 %start prog;
 
@@ -107,8 +108,10 @@ comando: atribuicao  //{printf("Comando\n");}
 
 comando_composto: T_COMCOMP_INI lista_de_comandos T_COMCOMP_FIM  //{printf("Comando composto\n");}
 
-condicional: T_CONDICIONAL_INI expressao T_CONDICIONAL_FIM comando T_CONDICIONAL_ELSE comando //{printf("Condicional\n");}
-    | T_CONDICIONAL_INI expressao T_CONDICIONAL_FIM comando //{printf("Condicional\n");} 
+condicional: condicional_ini {cl_insert_lbl(cl, $1);} 
+    | condicional_ini T_CONDICIONAL_ELSE {cl_insert_goto(cl, $2);cl_insert_lbl(cl, $1);} comando {cl_insert_lbl(cl, $2);}
+
+condicional_ini: T_CONDICIONAL_INI expressao T_CONDICIONAL_FIM {cl_insert_if(cl, IFEQ, $1);} comando {$$ = $1;}
 
 corpo: declaracoes comando_composto  //{printf("Corpo\n");}
 
@@ -124,7 +127,7 @@ declaracao_de_variavel: T_DEF_VAR {symbolsadded = 0;} lista_de_ids T_DEF_TIPO ti
     linhatabelasimbolos *lts = ts->ult;
     for (int i = 0; i < symbolsadded; i++){
         lts->simb.tipo = $5;
-        printf("%s : %d\n", lts->simb.nome, lts->simb.tipo);
+        // printf("%s : %d\n", lts->simb.nome, lts->simb.id);
         lts = lts->ant;
     }
     }

@@ -7,7 +7,6 @@ code_list_node *cln_malloc(char *code);
 void cln_free(code_list_node *cln);
 void cln_assert_not_null(code_list_node *cln);
 char *malloc_cat_cmd_int_endl(char *cmd, int v);
-int generate_label();
 
 void cl_assert_not_null(code_list *cl);
 
@@ -47,6 +46,8 @@ code_list_node *cln_malloc(char *code)
 void cl_insert(code_list *cl, char *code)
 {
     cl_assert_not_null(cl);
+
+    printf("%s\n", code);
 
     code_list_node *newcln = cln_malloc(code);
     if (!cl->start)
@@ -114,6 +115,13 @@ void cl_insert_header(code_list *cl, char *classname)
     free(header);
 }
 
+void cl_insert_lbl(code_list *cl, int label)
+{
+    char cmd[64];
+    snprintf(cmd, 64, "L%d:\n", label);
+    cl_insert(cl, cmd);
+}
+
 void cl_insert_footer(code_list *cl)
 {
     cl_assert_not_null(cl);
@@ -138,12 +146,12 @@ void cl_insert_bipush(code_list *cl, int value)
     free(cmd);
 }
 
-void cl_insert_if(code_list *cl, char *ifcom, int labelnum)
+void cl_insert_if(code_list *cl, char *ifcom, int label)
 {
     cl_assert_not_null(cl);
     char command[64];
 
-    snprintf(command, 64, "%sL%d\n", ifcom, labelnum);
+    snprintf(command, 64, "%sL%d\n", ifcom, label);
 
     cl_insert(cl, command);
 }
@@ -157,6 +165,13 @@ void cl_insert_iload(code_list *cl, int var_id)
     free(cmd);
 }
 
+void cl_insert_goto(code_list *cl, int label)
+{
+    char cmd[64];
+    snprintf(cmd, 64, "goto L%d\n", label);
+    cl_insert(cl, cmd);
+}
+
 void cl_insert_oprel(code_list *cl, relops op)
 {
     cl_assert_not_null(cl);
@@ -167,22 +182,22 @@ void cl_insert_oprel(code_list *cl, relops op)
     switch (op)
     {
     case EQ:
-        cl_insert_if(cl, IFEQ, lbl1);
+        cl_insert_if(cl, IFCMPEQ, lbl1);
         break;
     case NEQ:
-        cl_insert_if(cl, IFNE, lbl1);
+        cl_insert_if(cl, IFCMPNE, lbl1);
         break;
     case LSS:
-        cl_insert_if(cl, IFLT, lbl1);
+        cl_insert_if(cl, IFCMPLT, lbl1);
         break;
     case GRT:
-        cl_insert_if(cl, IFGT, lbl1);
+        cl_insert_if(cl, IFCMPGT, lbl1);
         break;
     case LEQ:
-        cl_insert_if(cl, IFLE, lbl1);
+        cl_insert_if(cl, IFCMPLE, lbl1);
         break;
     case GEQ:
-        cl_insert_if(cl, IFGE, lbl1);
+        cl_insert_if(cl, IFCMPGE, lbl1);
         break;
     default:
         //@todo: jogar erro

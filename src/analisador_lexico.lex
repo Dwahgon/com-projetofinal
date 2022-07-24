@@ -170,16 +170,19 @@ DIGITO  [0-9]
 
 "for"   {
     avancar_coluna(yytext);
+    yylval.ival = generate_label();
     return T_FOR;
 }
 
 "while" {
     avancar_coluna(yytext);
+    yylval.ival = generate_label();
     return T_WHILE;
 }
 
 "do"    {
     avancar_coluna(yytext);
+    yylval.ival = generate_label();
     return T_LOOP_END;
 }
 

@@ -1,32 +1,56 @@
 program programabasico;
-var variavel, int1, int2 : integer;     // 0
-var variavel2, b1 : boolean;    // 1
-var variavel3 : real;    // 2
-var variavel4 : integer;    // 3
+    var teste : boolean;
+    var teste2 : boolean;
+    var valor1 : integer;
+    var valor2 : integer;
+    var valor_r : real;
+
+    var a,g,i : integer;
 begin
-    variavel := 3;
-    variavel2 := 10;
-    variavel3 := 1+1;
-    variavel := 1-1;
-    variavel2 := variavel3 * (4 + variavel);
-    variavel4 := 1 > 1;
+    teste := false;
+    teste2 := 0;
+    valor1 := 0;
+    valor2 := 0;
+    //valor_r := 0.0;
+    //vetor := {0,0,0,0,0,0,0,0,0,0};
+    a := 5;
+    //vetor[a] := 80;
+    //print(vetor[a]);
 
-    if variavel = 2 then
-        variavel := 10;
+    //print("Digite um numero: \n");
+    //read(a);
+    // Isto daqui é um comentário
+    while i<10 do
+        begin
+            i := i + 1;
+            a := a + 1;
+        end;
+    ;
+    
+    //print("Incrementado algumas vezes fica \" a \"\n");
+
+    for g := 1 ; g <= 10; g := g + 1 do
+        begin end;
+        //print(".");
+    ;
+
+    //print("\n");
+
+    if a = 15 then
+        begin end;
+        //print("A=15\n");
+    ;
+    if (a=18) or (a=20) then
+        begin end;
+        //print("A igual a 18 ou 20\n")
+    ;
+    
+    if i=100 then
+        //print("Decorando o texto...\n");
+        begin end;
     else
-        variavel := 50;
+        a:=3;
     ;
 
-    if variavel = 2 then
-        variavel := 10;
-    ;
-
-    if variavel = 2 then
-        if variavel = 10 then
-            variavel := 10;
-        ;
-    else
-        variavel := 50;
-    ;
 end
 .

@@ -70,9 +70,9 @@ tabelasimbolos *ts;
 %token T_FIM_PROG
 %token T_STRING_LIT
 %token<symboltypeval> T_SIMPLES
-%token T_FOR
-%token T_WHILE
-%token T_LOOP_END
+%token<ival> T_FOR
+%token<ival> T_WHILE
+%token<ival> T_LOOP_END
 %token T_SEPARADOR_INSTRUCAO
 /* %token T_RETORNO */
 %token T_INI_ARRAY_LIT
@@ -86,6 +86,9 @@ tabelasimbolos *ts;
 %type <ival> condicional_ini
 %type <ival> lista_de_ids
 %type <ival> lista_de_ids_2
+%type <ival> for_attrib_label
+%type <ival> for_condition
+%type <ival> for_goto_body
 
 %start prog;
 
@@ -149,8 +152,44 @@ fator: variavel {if ($1) cl_insert_iload(cl, $1->id);}
     | T_INI_PARENTESES expressao T_FIM_PARENTESES  //{printf("Fator\n");}
     /* | chamada  //{printf("Fator\n");} */
 
-iterativo: T_WHILE expressao T_LOOP_END comando  //{printf("Iterativo\n");}
-    | T_FOR atribuicao T_FIM_INSTRUCAO expressao T_FIM_INSTRUCAO atribuicao T_LOOP_END comando  //{printf("Iterativo\n");}
+iterativo: while  //{printf("Iterativo\n");}
+    | for  //{printf("Iterativo\n");}
+
+while: T_WHILE  {cl_insert_lbl(cl, $1);} 
+    expressao 
+    T_LOOP_END {cl_insert_if(cl, IFEQ, $4);}
+    comando 
+    T_FIM_INSTRUCAO 
+    {
+        cl_insert_goto(cl, $1);
+        cl_insert_lbl(cl, $4);
+    }
+
+for: T_FOR 
+    atribuicao 
+    T_FIM_INSTRUCAO
+    {cl_insert_lbl(cl, $1);}  // Label for the condition check
+    expressao
+    for_condition
+    for_goto_body
+    T_FIM_INSTRUCAO
+    for_attrib_label
+    atribuicao
+    {
+        cl_insert_goto(cl, $1); // Goto condition check after doing the attribution
+        cl_insert_lbl(cl, $7);  // Add label for the body
+    }
+    T_LOOP_END 
+    comando
+    {
+        cl_insert_goto(cl, $9); // Goto attibution
+        cl_insert_lbl(cl, $6); // Add label for the loop end
+    }
+    T_FIM_INSTRUCAO
+
+for_condition: %empty { $$ = generate_label(); cl_insert_if(cl, IFEQ, $$);}
+for_goto_body: %empty {$$ = generate_label(); cl_insert_goto(cl, $$);}
+for_attrib_label: %empty {$$ = generate_label();}
 
 lista_de_comandos: %empty //{printf("Lista de comandos\n");}
     | comando T_FIM_INSTRUCAO lista_de_comandos  //{printf("Lista de comandos\n");}
@@ -178,7 +217,7 @@ lista_de_ids_2: %empty {$$ = 0;}
 /* lista_de_parametros_2: %empty */
     /* | T_FIM_INSTRUCAO parametro lista_de_parametros_2 */
 
-literal: T_BOOL_LIT  //{printf("Literal\n");}
+literal: T_BOOL_LIT  {cl_insert_bipush(cl, (int)$1);}
     | T_INT_LIT  {cl_insert_bipush(cl, $1);}
     | T_FLOAT_LIT  //{printf("Literal\n");}
     | T_STRING_LIT  //{printf("Literal\n");}

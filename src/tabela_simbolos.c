@@ -23,11 +23,12 @@ tabelasimbolos *ts_malloc()
     return novatabela;
 }
 
-void ts_inserir(tabelasimbolos *ts, char *nome, tipo_simbolo tipo)
+int ts_inserir(tabelasimbolos *ts, char *nome, tipo_simbolo tipo)
 {
     ts_assert_not_null(ts);
 
     char *nomecp;
+    int newsymbol_id = symbol_id++;
     if (!(nomecp = (char *)malloc(sizeof(char) * strlen(nome))))
     {
         fprintf(stderr, ERRMSG_MALLOC_TS_NAME);
@@ -35,7 +36,9 @@ void ts_inserir(tabelasimbolos *ts, char *nome, tipo_simbolo tipo)
     }
     strcpy(nomecp, nome);
 
-    ts_inserir_simbolo(ts, &(simbolo){nomecp, symbol_id++, tipo});
+    ts_inserir_simbolo(ts, &(simbolo){nomecp, newsymbol_id, tipo});
+
+    return newsymbol_id;
 }
 
 simbolo *ts_find_symbol(tabelasimbolos *ts, char *name)

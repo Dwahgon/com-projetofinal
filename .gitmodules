@@ -1,0 +1,3 @@
+[submodule "jasmin"]
+	path = jasmin
+	url = https://github.com/davidar/jasmin.git

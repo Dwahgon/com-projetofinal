@@ -1,4 +1,5 @@
 #include "gerador_codigo.h"
+#include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -6,6 +7,7 @@
 code_list_node *cln_malloc(char *code);
 void cln_free(code_list_node *cln);
 void cln_assert_not_null(code_list_node *cln);
+void cl_insert_formatted(code_list *cl, const char *formatstr, ...);
 char *malloc_cat_cmd_int_endl(char *cmd, int v);
 
 void cl_assert_not_null(code_list *cl);
@@ -90,27 +92,26 @@ void cl_free(code_list *cl)
     free(cl);
 }
 
+void cl_insert_ldc_string(code_list *cl, char *value)
+{
+    cl_assert_not_null(cl);
+    cl_insert_formatted(cl, LDC_S, value);
+}
+
 void cl_insert_header(code_list *cl, char *classname)
 {
     cl_assert_not_null(cl);
+    cl_insert_formatted(cl, HEADER_CLASS, classname);
+    cl_insert_formatted(cl, "%s%s", READ_FUNC, HEADER_AFTER_CLASS);
+}
 
-    char class[] = HEADER_CLASS;
-    char after_class[] = HEADER_AFTER_CLASS;
-    char *header;
+void cl_insert_iconst(code_list *cl, int value)
+{
+    cl_assert_not_null(cl);
+    if (value > 5 || value < 0)
+        return; // TODO: throw exception
 
-    if (!(header = (char *)calloc(strlen(class) + strlen(classname) + strlen(after_class), sizeof(char))))
-    {
-        fprintf(stderr, ERRMSG_MALLOC_HEADER);
-        exit(1);
-    }
-
-    strcat(header, class);
-    strcat(header, classname);
-    strcat(header, after_class);
-
-    cl_insert(cl, header);
-
-    free(header);
+    cl_insert_formatted(cl, ICONST, value);
 }
 
 void cl_insert_lbl(code_list *cl, int label)
@@ -168,6 +169,31 @@ void cl_insert_goto(code_list *cl, int label)
     char cmd[64];
     snprintf(cmd, 64, "goto L%d\n", label);
     cl_insert(cl, cmd);
+}
+
+void cl_insert_invokeprint(code_list *cl, tipo_simbolo tipo, int newline)
+{
+    cl_assert_not_null(cl);
+
+    switch (tipo)
+    {
+    case STRING:
+        cl_insert_formatted(cl, INVOKE_PRINT, newline ? "ln" : "", PRINT_STRING_ARG);
+        break;
+    case BOOLEANA:
+    case INTEIRO:
+        cl_insert_formatted(cl, INVOKE_PRINT, newline ? "ln" : "", PRINT_INT_ARG);
+        break;
+    default:
+        fprintf(stderr, ERRMSG_INVOKEPRINT_INVALIDTYPE, tipo);
+        break; // TODO: print error
+    }
+}
+
+void cl_insert_invokeread(code_list *cl, char *class)
+{
+    cl_assert_not_null(cl);
+    cl_insert_formatted(cl, INVOKE_READ, class);
 }
 
 void cl_insert_oprel(code_list *cl, relops op)
@@ -266,6 +292,20 @@ char *malloc_cat_cmd_int_endl(char *cmd, int v)
     strcat(command, "\n");
 
     return command;
+}
+
+void cl_insert_formatted(code_list *cl, const char *formatstr, ...)
+{
+    cl_assert_not_null(cl);
+
+    char buff[CMD_BUFF_SIZE];
+    va_list valist;
+
+    va_start(valist, formatstr);
+    vsnprintf(buff, CMD_BUFF_SIZE, formatstr, valist);
+    va_end(valist);
+
+    cl_insert(cl, buff);
 }
 
 int generate_label()

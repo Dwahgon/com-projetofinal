@@ -1,9 +1,12 @@
-program programabasico;
+program teste;
     var teste : boolean;
     var teste2 : boolean;
     var valor1 : integer;
     var valor2 : integer;
     var valor_r : real;
+    // var vetor : array[0 .. 10] of integer;
+    // var matriz : array[0 .. 10] of integer;
+    // var retorno_main : integer;
 
     var a,g,i : integer;
 begin
@@ -11,46 +14,59 @@ begin
     teste2 := 0;
     valor1 := 0;
     valor2 := 0;
-    //valor_r := 0.0;
-    //vetor := {0,0,0,0,0,0,0,0,0,0};
+    // valor_r := 0.0;
+    // vetor := {0,0,0,0,0,0,0,0,0,0};
     a := 5;
     //vetor[a] := 80;
     //print(vetor[a]);
 
-    //print("Digite um numero: \n");
-    //read(a);
+    println(teste);
+    println(teste2);
+    println(valor1);
+    println(valor2);
+    //print(valor_r);
+    println(a);
+    println(g);
+    println(i);
+
+    println("Digite um numero: ");
+
+    read(a);
+    
     // Isto daqui é um comentário
     while i<10 do
         begin
             i := i + 1;
+            println(i);
             a := a + 1;
+            println(a);
         end;
     ;
-    
-    //print("Incrementado algumas vezes fica \" a \"\n");
+
+
+    print("Incrementado algumas vezes fica ");
+    println(a);
 
     for g := 1 ; g <= 10; g := g + 1 do
-        begin end;
-        //print(".");
+        print(".");
     ;
 
-    //print("\n");
+    println("");
 
     if a = 15 then
-        begin end;
-        //print("A=15\n");
+        println("A=15");
     ;
     if (a=18) or (a=20) then
-        begin end;
-        //print("A igual a 18 ou 20\n")
+        println("A igual a 18 ou 20");
     ;
-    
+
     if i=100 then
-        //print("Decorando o texto...\n");
-        begin end;
+        println("Decorando o texto...");
     else
         a:=3;
     ;
 
+    println(a);
+    println("");
 end
 .

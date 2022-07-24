@@ -12,6 +12,7 @@ typedef enum _tipo_simbolo
     INTEIRO,
     FLUTUANTE,
     BOOLEANA,
+    STRING,
     VAZIO
 } tipo_simbolo;
 
@@ -36,7 +37,7 @@ typedef struct _tabelasimbolos
 } tabelasimbolos;
 
 tabelasimbolos *ts_malloc();
-void ts_inserir(tabelasimbolos *ts, char *nome, tipo_simbolo tipo);
+int ts_inserir(tabelasimbolos *ts, char *nome, tipo_simbolo tipo);
 simbolo *ts_find_symbol(tabelasimbolos *ts, char *name);
 void ts_clear(tabelasimbolos *ts);
 void ts_free(tabelasimbolos *ts);

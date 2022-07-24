@@ -23,6 +23,21 @@ DIGITO  [0-9]
     nova_linha();
 }
 
+"print" {
+    avancar_coluna(yytext);
+    return T_PRINT;
+}
+
+"println" {
+    avancar_coluna(yytext);
+    return T_PRINTLN;
+}
+
+"read" {
+    avancar_coluna(yytext);
+    return T_READ;
+}
+
 "program"   {
     avancar_coluna(yytext);
     return T_PROG;
@@ -86,12 +101,12 @@ DIGITO  [0-9]
 
 "{" {
     avancar_coluna(yytext);
-    return T_INI_ARRAY_LIT;
+    // return T_INI_ARRAY_LIT;
 }
 
 "}" {
     avancar_coluna(yytext);
-    return T_FIM_ARRAY_LIT;
+    // return T_FIM_ARRAY_LIT;
 }
 
 "(" {
@@ -210,7 +225,8 @@ DIGITO  [0-9]
 
 \"([^\\\"]|\\.)*\"   {
     avancar_coluna(yytext);
-    // printf("%s\n", yytext);
+    // printf("String: %s\n", yytext);
+    yylval.cptrval = yytext;
     return T_STRING_LIT;
 }
 
@@ -218,7 +234,7 @@ DIGITO  [0-9]
     avancar_coluna(yytext);
     if (strcmp(yytext, "integer") == 0)
         yylval.symboltypeval = INTEIRO;
-    else if (strcmp(yytext, "real"))
+    else if (strcmp(yytext, "real") == 0)
         yylval.symboltypeval = FLUTUANTE;
     else 
         yylval.symboltypeval = BOOLEANA;

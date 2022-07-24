@@ -3,6 +3,7 @@ PROJECTNAME=compilador-projetofinal
 SRCDIR=./src
 OBJDIR=./objs
 BINDIR=./bin
+EXMDIR=./examples
 
 C=gcc
 CFLAGS=-g -c -lm -Wall -I$(SRCDIR)
@@ -11,6 +12,12 @@ BISON=bison
 BISONFLAGS=-d -g -Wall
 FLEX=flex
 FLEXFLAGS=--noyywrap --nounput
+JAVA=java
+JASMIN=./jasmin/jasmin.jar
+
+TARGET=$(EXMDIR)/teste.txt
+TARGET_J=$(addsuffix .j,$(addprefix $(OBJDIR)/,$(notdir $(basename $(TARGET)))))
+TARGET_CLASS=$(subst .j,.class,$(subst $(OBJDIR),$(BINDIR), $(TARGET_J)))
 
 CSRCS=$(wildcard $(SRCDIR)/*.c)
 CSRCOBJS=$(subst .c,.o,$(subst $(SRCDIR),$(OBJDIR),$(CSRCS)))
@@ -57,4 +64,12 @@ objdir:
 clean:
 	@ $(RM) $(OBJDIR) $(BINDIR)
 
-.PHONY: all clean
+compile_and_assemble: all $(TARGET_CLASS)
+
+$(TARGET_CLASS): $(TARGET_J)
+	$(JAVA) -jar $(JASMIN) -d $(BINDIR) $(TARGET_J)
+
+$(TARGET_J): $(TARGET)
+	$(BINDIR)/$(PROJECTNAME) $(TARGET) $(TARGET_J)
+
+.PHONY: all clean compile_and_assemble

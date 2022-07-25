@@ -14,17 +14,19 @@ begin
     teste2 := 0;
     valor1 := 0;
     valor2 := 0;
-    // valor_r := 0.0;
+    valor_r := 0.0;
     // vetor := {0,0,0,0,0,0,0,0,0,0};
     a := 5;
     //vetor[a] := 80;
     //print(vetor[a]);
 
+    valor_r := 1.5 + 0.3;
+
     println(teste);
     println(teste2);
     println(valor1);
     println(valor2);
-    //print(valor_r);
+    println(valor_r);
     println(a);
     println(g);
     println(i);

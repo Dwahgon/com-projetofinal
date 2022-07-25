@@ -83,7 +83,7 @@ tabelasimbolos *ts;
 
 %%
 
-atribuicao: variavel T_ATRIBUICAO expressao  {if ($1) cl_insert_istore(cl, $1->id);}
+atribuicao: variavel T_ATRIBUICAO expressao  {if ($1) cl_insert_store(cl, $1);}
     ;
 
 /* array_lit: T_INI_ARRAY_LIT lista_de_expressoes T_FIM_ARRAY_LIT  //{printf("Array lit\n");} */
@@ -126,6 +126,8 @@ declaracao_de_variavel: T_DEF_VAR lista_de_ids T_DEF_TIPO tipo  {
         linhatabelasimbolos *lts = ts->ult;
         for (int i = 0; i < $2; i++){
             lts->simb.tipo = $4;
+            cl_insert_const(cl, 0, $4);
+            cl_insert_store(cl, &lts->simb);
             // printf("(%d)%s : %d\n", lts->simb.id, lts->simb.nome, lts->simb.tipo);
             lts = lts->ant;
         }
@@ -140,14 +142,15 @@ expressao: expressao_simples                        {$$ = $1;}
     | expressao_simples T_OP_REL expressao_simples  {cl_insert_oprel(cl, $2); $$ = BOOLEANA;}
     ;
 
-expressao_simples: termo expressao_simples_2    {$$ = $1;}
+expressao_simples: termo                            {$$ = $1;}
+    | expressao_simples T_OP_ADD expressao_simples  {cl_insert_op(cl, $1, $3, $2); $$ = $1;} 
     ;
 
-expressao_simples_2: %empty
-    | T_OP_ADD termo {cl_insert(cl, $1);} expressao_simples_2
-    ;
+/* expressao_simples_2: %empty
+    | T_OP_ADD termo {cl_insert_op(cl, $1);} expressao_simples_2
+    ; */
 
-fator: variavel                                     {if ($1) {cl_insert_iload(cl, $1->id); $$=$1->tipo;}}
+fator: variavel                                     {if ($1) {cl_insert_load(cl, $1); $$=$1->tipo;}}
     | literal                                       {$$ = $1;}
     | T_INI_PARENTESES expressao T_FIM_PARENTESES   {$$ = $2;}
     ;
@@ -219,9 +222,7 @@ declare_id: T_ID
     {
         $$ = 0;
         if(!ts_find_symbol(ts, $1, VARIAVEL)){
-            int id = ts_inserir(ts, $1, VAZIO, VARIAVEL);
-            cl_insert_iconst(cl, 0);
-            cl_insert_istore(cl, id);
+            ts_inserir(ts, $1, VAZIO, VARIAVEL);
             $$ = 1;
         }
     }
@@ -236,7 +237,7 @@ declare_id: T_ID
 
 literal: T_BOOL_LIT {cl_insert_bipush(cl, (int)$1); $$ = BOOLEANA;}
     | T_INT_LIT     {cl_insert_bipush(cl, $1); $$ = INTEIRO;}
-    | T_FLOAT_LIT   {$$ = FLUTUANTE;}//{printf("Literal\n");}
+    | T_FLOAT_LIT   {cl_insert_ldc_float(cl, $1); $$ = FLUTUANTE;}//{printf("Literal\n");}
     | T_STRING_LIT  {cl_insert_ldc_string(cl, $1); $$ = STRING;}
     ;
     /* | array_lit  //{printf("Literal\n");} */
@@ -267,7 +268,7 @@ read: T_READ
     {cl_insert_invokeread(cl, ts->prim->simb.nome);}
     T_INI_PARENTESES
     variavel
-    {if ($4) cl_insert_istore(cl, $4->id);}
+    {if ($4) cl_insert_store(cl, $4);}
     T_FIM_PARENTESES
     ;
 
@@ -275,11 +276,12 @@ seletor: %empty //{printf("Seletor\n");}
     | T_SELETOR_INI expressao T_SELETOR_FIM seletor  //{printf("Seletor\n");}
     ;
 
-termo: fator termo_2    {$$ = $1;}
+termo: fator                {$$ = $1;}
+    | termo T_OP_MULT termo {cl_insert_op(cl, $1, $3, $2); $$ = $1;}
     ;
 
-termo_2: %empty
-    | T_OP_MULT fator {cl_insert(cl, $1);} termo_2
+/* termo_2: %empty
+    | T_OP_MULT fator {cl_insert(cl, $1);} termo_2 */
     ;
 
 tipo: T_SIMPLES 
@@ -289,13 +291,7 @@ tipo: T_SIMPLES
 /* tipo_agregado: T_DEF_ARRAY T_DEF_ARRAY_TIPO tipo  //{printf("Tipo agregado\n");}
     | T_DEF_ARRAY T_SELETOR_INI T_INT_LIT T_INTERVALO T_INT_LIT T_SELETOR_FIM T_DEF_ARRAY_TIPO tipo  //{printf("Tipo agregado\n");} */
 
-variavel: T_ID seletor {
-    simbolo *s;
-    if ((s = ts_find_symbol(ts, $1, VARIAVEL))) 
-        $$ = s;
-    else
-        $$ = NULL;
-    }
+variavel: T_ID seletor {$$ = ts_find_symbol(ts, $1, VARIAVEL);}
     ;
 
 
@@ -319,7 +315,7 @@ int main(int argc, char* argv[]){
     cl = cl_malloc();
     ts = ts_malloc();
     
-    setlocale (LC_ALL, "");
+    //setlocale (LC_ALL, "");
 
     ++argv, --argc; // Ignore first argument
     switch(argc){

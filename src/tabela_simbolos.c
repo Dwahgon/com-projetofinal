@@ -5,7 +5,7 @@
 
 int symbol_id = 0;
 
-void ts_inserir_simbolo(tabelasimbolos *ts, simbolo *dados);
+simbolo *ts_inserir_simbolo(tabelasimbolos *ts, simbolo *simb);
 void ts_assert_not_null(tabelasimbolos *ts);
 void lts_assert_not_null(linhatabelasimbolos *lts);
 void lts_free(linhatabelasimbolos *lts);
@@ -23,12 +23,11 @@ tabelasimbolos *ts_malloc()
     return novatabela;
 }
 
-int ts_inserir(tabelasimbolos *ts, char *nome, tipo_simbolo tipo, funcao_simbolo funcao)
+simbolo *ts_inserir(tabelasimbolos *ts, char *nome, tipo_simbolo tipo, funcao_simbolo funcao)
 {
     ts_assert_not_null(ts);
 
     char *nomecp;
-    int newsymbol_id = symbol_id++;
     if (!(nomecp = (char *)malloc(sizeof(char) * strlen(nome))))
     {
         fprintf(stderr, ERRMSG_MALLOC_TS_NAME);
@@ -36,9 +35,7 @@ int ts_inserir(tabelasimbolos *ts, char *nome, tipo_simbolo tipo, funcao_simbolo
     }
     strcpy(nomecp, nome);
 
-    ts_inserir_simbolo(ts, &(simbolo){nomecp, newsymbol_id, tipo, funcao});
-
-    return newsymbol_id;
+    return ts_inserir_simbolo(ts, &(simbolo){nomecp, symbol_id++, tipo, funcao});
 }
 
 simbolo *ts_find_symbol(tabelasimbolos *ts, char *name, funcao_simbolo funcao)
@@ -53,7 +50,7 @@ simbolo *ts_find_symbol(tabelasimbolos *ts, char *name, funcao_simbolo funcao)
     return NULL;
 }
 
-void ts_inserir_simbolo(tabelasimbolos *ts, simbolo *simb)
+simbolo *ts_inserir_simbolo(tabelasimbolos *ts, simbolo *simb)
 {
     ts_assert_not_null(ts);
 
@@ -72,12 +69,15 @@ void ts_inserir_simbolo(tabelasimbolos *ts, simbolo *simb)
     {
         ts->prim = lts;
         ts->ult = lts;
-        return;
+    }
+    else
+    {
+        ts->ult->prox = lts;
+        lts->ant = ts->ult;
+        ts->ult = lts;
     }
 
-    ts->ult->prox = lts;
-    lts->ant = ts->ult;
-    ts->ult = lts;
+    return &lts->simb;
 }
 
 void lts_free(linhatabelasimbolos *lts)

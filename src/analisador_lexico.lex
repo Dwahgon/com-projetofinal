@@ -65,22 +65,22 @@ DIGITO  [0-9]
 "+"|"-"|"or"    {
     avancar_coluna(yytext);
     if(strcmp("+", yytext) == 0)
-        yylval.cptrval = IADD;
+        yylval.cptrval = ADD;
     else if(strcmp("-", yytext) == 0)
-        yylval.cptrval = ISUB;
+        yylval.cptrval = SUB;
     else if(strcmp("or", yytext) == 0)
-        yylval.cptrval = IOR;
+        yylval.cptrval = OR;
     return T_OP_ADD;
 }
 
 "*"|"/"|"and"   {
     avancar_coluna(yytext);
     if(strcmp("*", yytext) == 0)
-        yylval.cptrval = IMUL;
+        yylval.cptrval = MUL;
     else if(strcmp("/", yytext) == 0)
-        yylval.cptrval = IDIV;
+        yylval.cptrval = DIV;
     else if(strcmp("and", yytext) == 0)
-        yylval.cptrval = IAND;
+        yylval.cptrval = AND;
     return T_OP_MULT;
 }
 

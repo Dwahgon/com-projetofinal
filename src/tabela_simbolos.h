@@ -44,7 +44,7 @@ typedef struct _tabelasimbolos
 } tabelasimbolos;
 
 tabelasimbolos *ts_malloc();
-int ts_inserir(tabelasimbolos *ts, char *nome, tipo_simbolo tipo, funcao_simbolo funcao);
+simbolo *ts_inserir(tabelasimbolos *ts, char *nome, tipo_simbolo tipo, funcao_simbolo funcao);
 simbolo *ts_find_symbol(tabelasimbolos *ts, char *name, funcao_simbolo funcao);
 void ts_clear(tabelasimbolos *ts);
 void ts_free(tabelasimbolos *ts);

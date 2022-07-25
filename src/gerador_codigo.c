@@ -10,6 +10,7 @@ void cl_assert_not_null(code_list *cl);
 code_list_node *cln_malloc(char *code);
 void cln_assert_not_null(code_list_node *cln);
 void cln_free(code_list_node *cln);
+char symbtype_char(tipo_simbolo tipo);
 
 int labelnum = 0;
 
@@ -91,6 +92,11 @@ void cl_free(code_list *cl)
     free(cl);
 }
 
+void cl_insert_ldc_float(code_list *cl, float value)
+{
+    cl_insert_formatted(cl, LDC_F, value);
+}
+
 void cl_insert_ldc_string(code_list *cl, char *value)
 {
     cl_insert_formatted(cl, LDC_S, value);
@@ -102,14 +108,14 @@ void cl_insert_header(code_list *cl, char *classname)
     cl_insert_formatted(cl, "%s%s", READ_FUNC, HEADER_AFTER_CLASS);
 }
 
-void cl_insert_iconst(code_list *cl, int value)
+void cl_insert_const(code_list *cl, int value, tipo_simbolo type)
 {
-    if (value > 5 || value < 0)
+    if (value > (type == FLUTUANTE ? 3 : 5) || value < 0)
     {
         fprintf(stderr, ERRMSG_ICONST_INVALID);
         return;
     }
-    cl_insert_formatted(cl, ICONST, value);
+    cl_insert_formatted(cl, CONST, symbtype_char(type), value);
 }
 
 void cl_insert_lbl(code_list *cl, int label)
@@ -122,9 +128,9 @@ void cl_insert_footer(code_list *cl)
     cl_insert(cl, FOOTER);
 }
 
-void cl_insert_istore(code_list *cl, int var_id)
+void cl_insert_store(code_list *cl, simbolo *var)
 {
-    cl_insert_formatted(cl, ISTORE, var_id);
+    cl_insert_formatted(cl, STORE, symbtype_char(var->tipo), var->id);
 }
 
 void cl_insert_bipush(code_list *cl, int value)
@@ -137,9 +143,9 @@ void cl_insert_if(code_list *cl, char *ifcom, int label)
     cl_insert_formatted(cl, "%sL%d\n", ifcom, label);
 }
 
-void cl_insert_iload(code_list *cl, int var_id)
+void cl_insert_load(code_list *cl, simbolo *var)
 {
-    cl_insert_formatted(cl, ILOAD, var_id);
+    cl_insert_formatted(cl, LOAD, symbtype_char(var->tipo), var->id);
 }
 
 void cl_insert_goto(code_list *cl, int label)
@@ -160,6 +166,9 @@ void cl_insert_invokeprint(code_list *cl, tipo_simbolo tipo, int newline)
     case INTEIRO:
         cl_insert_formatted(cl, INVOKE_PRINT, newline ? "ln" : "", PRINT_INT_ARG);
         break;
+    case FLUTUANTE:
+        cl_insert_formatted(cl, INVOKE_PRINT, newline ? "ln" : "", PRINT_FLOAT_ARG);
+        break;
     default:
         fprintf(stderr, ERRMSG_INVOKEPRINT_INVALIDTYPE, tipo);
         break; // TODO: print error
@@ -169,6 +178,12 @@ void cl_insert_invokeprint(code_list *cl, tipo_simbolo tipo, int newline)
 void cl_insert_invokeread(code_list *cl, char *class)
 {
     cl_insert_formatted(cl, INVOKE_READ, class);
+}
+
+void cl_insert_op(code_list *cl, tipo_simbolo type1, tipo_simbolo type2, char *op)
+{
+    if (type1 == type2)
+        cl_insert_formatted(cl, "%c%s", symbtype_char(type1), op);
 }
 
 void cl_insert_oprel(code_list *cl, char *ifop)
@@ -231,6 +246,22 @@ void cl_insert_formatted(code_list *cl, const char *formatstr, ...)
     va_end(valist);
 
     cl_insert(cl, buff);
+}
+
+char symbtype_char(tipo_simbolo tipo)
+{
+    switch (tipo)
+    {
+    case BOOLEANA:
+    case INTEIRO:
+        return 'i';
+    case FLUTUANTE:
+        return 'f';
+    default:
+        fprintf(stderr, ERRMSG_INVALID_TYPE, tipo);
+        break;
+    }
+    return 'i';
 }
 
 int generate_label()

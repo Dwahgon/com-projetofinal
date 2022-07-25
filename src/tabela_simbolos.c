@@ -23,7 +23,7 @@ tabelasimbolos *ts_malloc()
     return novatabela;
 }
 
-int ts_inserir(tabelasimbolos *ts, char *nome, tipo_simbolo tipo)
+int ts_inserir(tabelasimbolos *ts, char *nome, tipo_simbolo tipo, funcao_simbolo funcao)
 {
     ts_assert_not_null(ts);
 
@@ -36,18 +36,18 @@ int ts_inserir(tabelasimbolos *ts, char *nome, tipo_simbolo tipo)
     }
     strcpy(nomecp, nome);
 
-    ts_inserir_simbolo(ts, &(simbolo){nomecp, newsymbol_id, tipo});
+    ts_inserir_simbolo(ts, &(simbolo){nomecp, newsymbol_id, tipo, funcao});
 
     return newsymbol_id;
 }
 
-simbolo *ts_find_symbol(tabelasimbolos *ts, char *name)
+simbolo *ts_find_symbol(tabelasimbolos *ts, char *name, funcao_simbolo funcao)
 {
     ts_assert_not_null(ts);
 
     for (linhatabelasimbolos *lts = ts->prim; lts; lts = lts->prox)
     {
-        if (strcmp(lts->simb.nome, name) == 0)
+        if (strcmp(lts->simb.nome, name) == 0 && lts->simb.funcao == funcao)
             return &lts->simb;
     }
     return NULL;

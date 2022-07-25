@@ -1,4 +1,6 @@
 %option noyywrap
+%option nounput
+%option noinput
 
 %{
 #include <string.h>
@@ -63,39 +65,39 @@ DIGITO  [0-9]
 "+"|"-"|"or"    {
     avancar_coluna(yytext);
     if(strcmp("+", yytext) == 0)
-        yylval.opcommand = IADD;
+        yylval.cptrval = IADD;
     else if(strcmp("-", yytext) == 0)
-        yylval.opcommand = ISUB;
+        yylval.cptrval = ISUB;
     else if(strcmp("or", yytext) == 0)
-        yylval.opcommand = IOR;
+        yylval.cptrval = IOR;
     return T_OP_ADD;
 }
 
 "*"|"/"|"and"   {
     avancar_coluna(yytext);
     if(strcmp("*", yytext) == 0)
-        yylval.opcommand = IMUL;
+        yylval.cptrval = IMUL;
     else if(strcmp("/", yytext) == 0)
-        yylval.opcommand = IDIV;
+        yylval.cptrval = IDIV;
     else if(strcmp("and", yytext) == 0)
-        yylval.opcommand = IAND;
+        yylval.cptrval = IAND;
     return T_OP_MULT;
 }
 
 "<"|">"|"<="|">="|"="|"<>" {
     avancar_coluna(yytext);
     if(strcmp("<", yytext) == 0)
-        yylval.relval = LSS;
+        yylval.cptrval = IFCMPLT;
     else if(strcmp(">", yytext) == 0)
-        yylval.relval = GRT;
+        yylval.cptrval = IFCMPGT;
     else if(strcmp("<=", yytext) == 0)
-        yylval.relval = LEQ;
+        yylval.cptrval = IFCMPLE;
     else if(strcmp(">=", yytext) == 0)
-        yylval.relval = GEQ;
+        yylval.cptrval = IFCMPGE;
     else if(strcmp("=", yytext) == 0)
-        yylval.relval = EQ;
+        yylval.cptrval = IFCMPEQ;
     else if(strcmp("<>", yytext) == 0)
-        yylval.relval = NEQ;
+        yylval.cptrval = IFCMPNE;
     return T_OP_REL;
 }
 
@@ -260,7 +262,7 @@ DIGITO  [0-9]
 
 {LETRA}({LETRA}|{DIGITO})*  {
     avancar_coluna(yytext);
-    yylval.tokenval = strdup(yytext);
+    yylval.cptrval = strdup(yytext);
     return T_ID;
 }
 

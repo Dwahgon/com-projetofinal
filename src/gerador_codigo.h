@@ -11,6 +11,7 @@
 #define ERRMSG_INVOKEPRINT_INVALIDTYPE "cl_insert_invokeprint: argumento inválido para tipo. Valor passado: %d\n"
 #define ERRMSG_CL_NULL "Argumento cl é um ponteiro nulo\n"
 #define ERRMSG_CLN_NULL "Argumento cln é um ponteiro nulo\n"
+#define ERRMSG_ICONST_INVALID "cl_insert_iconst: argumento 'value' deve estar entre 0 e 5, incluindo estes\n"
 
 #define CMD_BUFF_SIZE 4096
 
@@ -56,11 +57,19 @@
                      ".super java/lang/Object\n"
 #define FOOTER "return\n" \
                ".end method"
-#define BIPUSH "bipush "
+#define OPRELBODY "%sL%d\n"    \
+                  "iconst_0\n" \
+                  "goto L%d\n" \
+                  "L%d:\n"     \
+                  "iconst_1\n" \
+                  "L%d:\n"
+#define LABEL "L%d:\n"
+#define BIPUSH "bipush %d\n"
 #define LDC_S "ldc %s\n"
-#define ISTORE "istore "
+#define ISTORE "istore %d\n"
 #define ICONST "iconst_%d\n"
-#define ILOAD "iload "
+#define ILOAD "iload %d\n"
+#define GOTO "goto L%d\n"
 #define IADD "iadd\n"
 #define IMUL "imul\n"
 #define IDIV "idiv\n"
@@ -122,7 +131,7 @@ void cl_insert_iload(code_list *cl, int var_id);
 void cl_insert_goto(code_list *cl, int label);
 void cl_insert_lbl(code_list *cl, int label);
 void cl_insert_if(code_list *cl, char *ifcom, int labelnum);
-void cl_insert_oprel(code_list *cl, relops op);
+void cl_insert_oprel(code_list *cl, char *ifop);
 void cl_insert(code_list *cl, char *code);
 void cl_clear(code_list *cl);
 void cl_free(code_list *cl);

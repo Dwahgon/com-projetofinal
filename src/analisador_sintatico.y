@@ -37,66 +37,54 @@ tabelasimbolos *ts;
 	float fval;
     unsigned char bval;
     char* cptrval;
-    char* tokenval;
-    char* opcommand;
-    relops relval;
     simbolo *symbolval;
     tipo_simbolo symboltypeval;
 }
 
-%token T_ATRIBUICAO
-%token<tokenval> T_ID
-%token<opcommand> T_OP_ADD
-%token<opcommand> T_OP_MULT
-%token<relval> T_OP_REL
-%token<bval> T_BOOL_LIT
+%token<ival> T_FOR T_WHILE T_LOOP_END
 %token<ival> T_INT_LIT
+%token<ival> T_CONDICIONAL_INI T_CONDICIONAL_ELSE
+%token<bval> T_BOOL_LIT
 %token<fval> T_FLOAT_LIT
-%token T_INI_PARENTESES
-%token T_FIM_PARENTESES
-%token<ival> T_CONDICIONAL_INI
+%token<cptrval> T_ID
+%token<cptrval> T_OP_ADD T_OP_MULT T_OP_REL
+%token<cptrval> T_STRING_LIT
+%token<symboltypeval> T_SIMPLES
+%token T_INI_PARENTESES T_FIM_PARENTESES
+%token T_ATRIBUICAO
 %token T_CONDICIONAL_FIM
-%token<ival> T_CONDICIONAL_ELSE
-/* %token T_FUNC */
-/* %token T_PROC */
+%token T_PROG T_FIM_PROG
 %token T_DEF_TIPO
 %token T_FIM_INSTRUCAO
 %token T_DEF_VAR
+%token T_SELETOR_INI T_SELETOR_FIM
+%token T_COMCOMP_INI T_COMCOMP_FIM
+%token T_SEPARADOR_INSTRUCAO
+%token T_PRINT T_PRINTLN 
+%token T_READ
+/* %token T_FUNC */
+/* %token T_PROC */
 /* %token T_DEF_ARRAY
 %token T_DEF_ARRAY_TIPO */
-%token T_SELETOR_INI
-%token T_SELETOR_FIM
-%token T_COMCOMP_INI
-%token T_COMCOMP_FIM
-%token T_FIM_PROG
-%token<cptrval> T_STRING_LIT
-%token<symboltypeval> T_SIMPLES
-%token<ival> T_FOR
-%token<ival> T_WHILE
-%token<ival> T_LOOP_END
-%token T_SEPARADOR_INSTRUCAO
 /* %token T_RETORNO */
 /* %token T_INI_ARRAY_LIT */
 /* %token T_FIM_ARRAY_LIT */
-%token T_PROG
-%token T_PRINT T_PRINTLN T_READ
 /* %token T_INTERVALO */
 /* %right T_CONDICIONAL_FIM T_CONDICIONAL_ELSE */
 
 %type <symbolval> variavel
 %type <symboltypeval> tipo expressao expressao_simples fator termo literal
-%type <ival> condicional_ini printtype
-%type <ival> lista_de_ids
-%type <ival> lista_de_ids_2
-%type <ival> for_attrib_label
-%type <ival> for_condition
-%type <ival> for_goto_body
+%type <ival> condicional_ini 
+%type <ival> printtype
+%type <ival> lista_de_ids lista_de_ids_2 declare_id
+%type <ival> for_attrib_label for_condition for_goto_body
 
 %start prog;
 
 %%
 
 atribuicao: variavel T_ATRIBUICAO expressao  {if ($1) cl_insert_istore(cl, $1->id);}
+    ;
 
 /* array_lit: T_INI_ARRAY_LIT lista_de_expressoes T_FIM_ARRAY_LIT  //{printf("Array lit\n");} */
 
@@ -108,19 +96,25 @@ comando: atribuicao  //{printf("Comando\n");}
     | print
     | read
     | comando_composto  //{printf("Comando\n");}
+    ;
     /* | chamada  //{printf("Comando\n");} */
     /* | retorno  //{printf("Comando\n");} */
 
 comando_composto: T_COMCOMP_INI lista_de_comandos T_COMCOMP_FIM  //{printf("Comando composto\n");}
+    ;
 
 condicional: condicional_ini {cl_insert_lbl(cl, $1);} 
     | condicional_ini T_CONDICIONAL_ELSE {cl_insert_goto(cl, $2);cl_insert_lbl(cl, $1);} comando T_FIM_INSTRUCAO {cl_insert_lbl(cl, $2);}
+    ;
 
 condicional_ini: T_CONDICIONAL_INI expressao T_CONDICIONAL_FIM {cl_insert_if(cl, IFEQ, $1);} comando T_FIM_INSTRUCAO {$$ = $1;}
+    ;
 
 corpo: declaracoes comando_composto  //{printf("Corpo\n");}
+    ;
 
 declaracao: declaracao_de_variavel  //{printf("Declaração\n");}
+    ;
     /* | declaracao_de_funcao  //{printf("Declaração\n");} */
     /* | declaracao_de_procedimento  //{printf("Declaração\n");} */
 
@@ -136,25 +130,32 @@ declaracao_de_variavel: T_DEF_VAR lista_de_ids T_DEF_TIPO tipo  {
             lts = lts->ant;
         }
     }
+    ;
 
 declaracoes: %empty //{printf("Declarações\n");}
     | declaracao T_FIM_INSTRUCAO declaracoes  //{printf("Declarações\n");}
+    ;
 
 expressao: expressao_simples                        {$$ = $1;}
     | expressao_simples T_OP_REL expressao_simples  {cl_insert_oprel(cl, $2); $$ = BOOLEANA;}
+    ;
 
 expressao_simples: termo expressao_simples_2    {$$ = $1;}
+    ;
 
 expressao_simples_2: %empty
     | T_OP_ADD termo {cl_insert(cl, $1);} expressao_simples_2
+    ;
 
 fator: variavel                                     {if ($1) {cl_insert_iload(cl, $1->id); $$=$1->tipo;}}
     | literal                                       {$$ = $1;}
     | T_INI_PARENTESES expressao T_FIM_PARENTESES   {$$ = $2;}
+    ;
     /* | chamada  //{printf("Fator\n");} */
 
 iterativo: while  //{printf("Iterativo\n");}
     | for  //{printf("Iterativo\n");}
+    ;
 
 while: T_WHILE  {cl_insert_lbl(cl, $1);} 
     expressao 
@@ -165,6 +166,7 @@ while: T_WHILE  {cl_insert_lbl(cl, $1);}
         cl_insert_goto(cl, $1);
         cl_insert_lbl(cl, $4);
     }
+    ;
 
 for: T_FOR 
     atribuicao 
@@ -187,13 +189,18 @@ for: T_FOR
         cl_insert_lbl(cl, $6); // Add label for the loop end
     }
     T_FIM_INSTRUCAO
+    ;
 
 for_condition: %empty { $$ = generate_label(); cl_insert_if(cl, IFEQ, $$);}
+    ;
 for_goto_body: %empty {$$ = generate_label(); cl_insert_goto(cl, $$);}
+    ;
 for_attrib_label: %empty {$$ = generate_label(); cl_insert_lbl(cl, $$);}
+    ;
 
 lista_de_comandos: %empty //{printf("Lista de comandos\n");}
     | comando T_FIM_INSTRUCAO lista_de_comandos  //{printf("Lista de comandos\n");}
+    ;
 
 /* lista_de_expressoes: %empty //{printf("Lista de expressões\n");}
     | expressao lista_de_expressoes_2  //{printf("Lista de expressões\n");} */
@@ -201,21 +208,25 @@ lista_de_comandos: %empty //{printf("Lista de comandos\n");}
 /* lista_de_expressoes_2: %empty
     | T_SEPARADOR_INSTRUCAO expressao lista_de_expressoes_2 */
 
-lista_de_ids: T_ID 
-    <ival>{
+lista_de_ids: declare_id lista_de_ids_2 {$$ = $1 + $2;}
+    ;
+
+lista_de_ids_2: %empty {$$ = 0;}
+    | T_SEPARADOR_INSTRUCAO lista_de_ids {$$ = $2;}
+    ;
+
+declare_id: T_ID 
+    {
         $$ = 0;
-        if(!ts_find_symbol(ts, $1)){
-            int id = ts_inserir(ts, $1, VAZIO);
+        if(!ts_find_symbol(ts, $1, VARIAVEL)){
+            int id = ts_inserir(ts, $1, VAZIO, VARIAVEL);
             cl_insert_iconst(cl, 0);
             cl_insert_istore(cl, id);
             $$ = 1;
         }
-    } 
-    lista_de_ids_2
-    {$$ = $2 + $3;}
+    }
+    ;
 
-lista_de_ids_2: %empty {$$ = 0;}
-    | T_SEPARADOR_INSTRUCAO lista_de_ids {$$ = $2;}
 
 /* lista_de_parametros: parametro lista_de_parametros_2  //{printf("Lista de parâmetos\n");} */
     /* | lista_de_parametros_2  //{printf("Lista de parâmetos\n");} */
@@ -235,6 +246,7 @@ literal: T_BOOL_LIT {cl_insert_bipush(cl, (int)$1); $$ = BOOLEANA;}
 
 printtype: T_PRINT  {$$ = 0;}
     | T_PRINTLN     {$$ = 1;}
+    ;
 
 print: printtype
     {cl_insert(cl, GET_PRINT);}
@@ -242,9 +254,11 @@ print: printtype
     expressao
     T_FIM_PARENTESES
     {cl_insert_invokeprint(cl, $4, $1);}
+    ;
 
-prog: T_PROG T_ID {cl_insert_header(cl, $2); ts_inserir(ts, $2, VAZIO);} 
+prog: T_PROG T_ID {cl_insert_header(cl, $2); ts_inserir(ts, $2, VAZIO, PROGRAMA);} 
     T_FIM_INSTRUCAO corpo T_FIM_PROG {cl_insert_footer(cl);}
+    ;
 
 
 /* retorno: T_RETORNO expressao  //{printf("Retorno\n");} */
@@ -255,16 +269,21 @@ read: T_READ
     variavel
     {if ($4) cl_insert_istore(cl, $4->id);}
     T_FIM_PARENTESES
+    ;
 
 seletor: %empty //{printf("Seletor\n");}
     | T_SELETOR_INI expressao T_SELETOR_FIM seletor  //{printf("Seletor\n");}
+    ;
 
 termo: fator termo_2    {$$ = $1;}
+    ;
 
 termo_2: %empty
     | T_OP_MULT fator {cl_insert(cl, $1);} termo_2
+    ;
 
 tipo: T_SIMPLES 
+    ;
     /* | tipo_agregado */
 
 /* tipo_agregado: T_DEF_ARRAY T_DEF_ARRAY_TIPO tipo  //{printf("Tipo agregado\n");}
@@ -272,11 +291,12 @@ tipo: T_SIMPLES
 
 variavel: T_ID seletor {
     simbolo *s;
-    if ((s = ts_find_symbol(ts, $1))) 
+    if ((s = ts_find_symbol(ts, $1, VARIAVEL))) 
         $$ = s;
     else
         $$ = NULL;
     }
+    ;
 
 
 

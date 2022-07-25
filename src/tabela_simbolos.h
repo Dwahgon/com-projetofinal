@@ -16,11 +16,18 @@ typedef enum _tipo_simbolo
     VAZIO
 } tipo_simbolo;
 
+typedef enum _funcao_simbolo
+{
+    VARIAVEL,
+    PROGRAMA
+} funcao_simbolo;
+
 typedef struct _simbolo
 {
     char *nome;
     int id;
     tipo_simbolo tipo;
+    funcao_simbolo funcao;
 } simbolo;
 
 typedef struct _linhatabelasimbolos
@@ -37,8 +44,8 @@ typedef struct _tabelasimbolos
 } tabelasimbolos;
 
 tabelasimbolos *ts_malloc();
-int ts_inserir(tabelasimbolos *ts, char *nome, tipo_simbolo tipo);
-simbolo *ts_find_symbol(tabelasimbolos *ts, char *name);
+int ts_inserir(tabelasimbolos *ts, char *nome, tipo_simbolo tipo, funcao_simbolo funcao);
+simbolo *ts_find_symbol(tabelasimbolos *ts, char *name, funcao_simbolo funcao);
 void ts_clear(tabelasimbolos *ts);
 void ts_free(tabelasimbolos *ts);
 

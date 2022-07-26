@@ -2,13 +2,18 @@
 #include <string.h>
 #include <stdio.h>
 #include "tabela_simbolos.h"
+#include "errs.h"
 
 int symbol_id = 0;
 
+simbolo *ts_insert(tabelasimbolos *ts, char *nome, tipo_simbolo tipo, funcao_simbolo funcao);
 simbolo *ts_inserir_simbolo(tabelasimbolos *ts, simbolo *simb);
 void ts_assert_not_null(tabelasimbolos *ts);
 void lts_assert_not_null(linhatabelasimbolos *lts);
 void lts_free(linhatabelasimbolos *lts);
+
+extern int linha;
+extern int coluna;
 
 tabelasimbolos *ts_malloc()
 {
@@ -23,10 +28,22 @@ tabelasimbolos *ts_malloc()
     return novatabela;
 }
 
-simbolo *ts_inserir(tabelasimbolos *ts, char *nome, tipo_simbolo tipo, funcao_simbolo funcao)
+simbolo *ts_declare(tabelasimbolos *ts, char *name, tipo_simbolo type, funcao_simbolo function)
 {
     ts_assert_not_null(ts);
 
+    simbolo *s;
+    if ((s = ts_find_symbol(ts, name, function)))
+    {
+        perr(ERROR_COLOR, ERRMSG_VAR_ALREADY_DECLARED, name);
+        return NULL;
+    }
+
+    return ts_insert(ts, name, type, function);
+}
+
+simbolo *ts_insert(tabelasimbolos *ts, char *nome, tipo_simbolo tipo, funcao_simbolo funcao)
+{
     char *nomecp;
     if (!(nomecp = (char *)malloc(sizeof(char) * strlen(nome))))
     {
@@ -52,8 +69,6 @@ simbolo *ts_find_symbol(tabelasimbolos *ts, char *name, funcao_simbolo funcao)
 
 simbolo *ts_inserir_simbolo(tabelasimbolos *ts, simbolo *simb)
 {
-    ts_assert_not_null(ts);
-
     linhatabelasimbolos *lts;
     if (!(lts = (linhatabelasimbolos *)malloc(sizeof(linhatabelasimbolos))))
     {

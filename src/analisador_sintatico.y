@@ -6,6 +6,7 @@
 #include <string.h>
 #include <locale.h>
 #include <string.h>
+#include "errs.h"
 #include "gerador_codigo.h"
 #include "tabela_simbolos.h"
 
@@ -72,7 +73,7 @@ tabelasimbolos *ts;
 /* %token T_INTERVALO */
 /* %right T_CONDICIONAL_FIM T_CONDICIONAL_ELSE */
 
-%type <symbolval> variavel
+%type <cptrval> variavel
 %type <symboltypeval> tipo expressao expressao_simples fator termo literal
 %type <ival> condicional_ini 
 %type <ival> printtype
@@ -83,12 +84,11 @@ tabelasimbolos *ts;
 
 %%
 
-atribuicao: variavel T_ATRIBUICAO expressao  {if ($1) cl_insert_store(cl, $1);}
+atribuicao: variavel T_ATRIBUICAO expressao  {cl_insert_store(cl, ts, $1);}
     ;
 
 /* array_lit: T_INI_ARRAY_LIT lista_de_expressoes T_FIM_ARRAY_LIT  //{printf("Array lit\n");} */
 
-/* chamada: T_ID T_INI_PARENTESES lista_de_expressoes T_FIM_PARENTESES  //{printf("Chamada\n");} */
 
 comando: atribuicao  //{printf("Comando\n");}
     | condicional  //{printf("Comando\n");}
@@ -118,16 +118,12 @@ declaracao: declaracao_de_variavel  //{printf("Declaração\n");}
     /* | declaracao_de_funcao  //{printf("Declaração\n");} */
     /* | declaracao_de_procedimento  //{printf("Declaração\n");} */
 
-/* declaracao_de_funcao: T_FUNC T_ID T_INI_PARENTESES lista_de_parametros T_FIM_PARENTESES T_DEF_TIPO T_SIMPLES T_FIM_INSTRUCAO corpo  //{printf("Declaração de função\n");} */
-
-/* declaracao_de_procedimento: T_PROC T_ID T_INI_PARENTESES lista_de_parametros T_FIM_PARENTESES T_FIM_INSTRUCAO corpo  //{printf("Declaração de procedimento\n");} */
-
 declaracao_de_variavel: T_DEF_VAR lista_de_ids T_DEF_TIPO tipo  {
         linhatabelasimbolos *lts = ts->ult;
         for (int i = 0; i < $2; i++){
             lts->simb.tipo = $4;
             cl_insert_const(cl, 0, $4);
-            cl_insert_store(cl, &lts->simb);
+            cl_insert_store(cl, ts, lts->simb.nome);
             // printf("(%d)%s : %d\n", lts->simb.id, lts->simb.nome, lts->simb.tipo);
             lts = lts->ant;
         }
@@ -146,11 +142,7 @@ expressao_simples: termo                            {$$ = $1;}
     | expressao_simples T_OP_ADD expressao_simples  {cl_insert_op(cl, $1, $3, $2); $$ = $1;} 
     ;
 
-/* expressao_simples_2: %empty
-    | T_OP_ADD termo {cl_insert_op(cl, $1);} expressao_simples_2
-    ; */
-
-fator: variavel                                     {if ($1) {cl_insert_load(cl, $1); $$=$1->tipo;}}
+fator: variavel                                     {$$ = INTEIRO; simbolo* s; if ((s = cl_insert_load(cl, ts, $1))) $$ = s->tipo;}
     | literal                                       {$$ = $1;}
     | T_INI_PARENTESES expressao T_FIM_PARENTESES   {$$ = $2;}
     ;
@@ -218,22 +210,8 @@ lista_de_ids_2: %empty {$$ = 0;}
     | T_SEPARADOR_INSTRUCAO lista_de_ids {$$ = $2;}
     ;
 
-declare_id: T_ID 
-    {
-        $$ = 0;
-        if(!ts_find_symbol(ts, $1, VARIAVEL)){
-            ts_inserir(ts, $1, VAZIO, VARIAVEL);
-            $$ = 1;
-        }
-    }
+declare_id: T_ID {$$ = ts_declare(ts, $1, VAZIO, VARIAVEL) ? 1 : 0;}
     ;
-
-
-/* lista_de_parametros: parametro lista_de_parametros_2  //{printf("Lista de parâmetos\n");} */
-    /* | lista_de_parametros_2  //{printf("Lista de parâmetos\n");} */
-
-/* lista_de_parametros_2: %empty */
-    /* | T_FIM_INSTRUCAO parametro lista_de_parametros_2 */
 
 literal: T_BOOL_LIT {cl_insert_bipush(cl, (int)$1); $$ = BOOLEANA;}
     | T_INT_LIT     {cl_insert_bipush(cl, $1); $$ = INTEIRO;}
@@ -241,9 +219,6 @@ literal: T_BOOL_LIT {cl_insert_bipush(cl, (int)$1); $$ = BOOLEANA;}
     | T_STRING_LIT  {cl_insert_ldc_string(cl, $1); $$ = STRING;}
     ;
     /* | array_lit  //{printf("Literal\n");} */
-
-/* parametro: T_DEF_VAR lista_de_ids T_DEF_TIPO T_SIMPLES  //{printf("Parâmetro\n");} */
-    /* | lista_de_ids T_DEF_TIPO T_SIMPLES  //{printf("Parâmetro\n");} */
 
 printtype: T_PRINT  {$$ = 0;}
     | T_PRINTLN     {$$ = 1;}
@@ -257,18 +232,15 @@ print: printtype
     {cl_insert_invokeprint(cl, $4, $1);}
     ;
 
-prog: T_PROG T_ID {cl_insert_header(cl, $2); ts_inserir(ts, $2, VAZIO, PROGRAMA);} 
+prog: T_PROG T_ID {cl_insert_header(cl, $2); ts_declare(ts, $2, VAZIO, PROGRAMA);} 
     T_FIM_INSTRUCAO corpo T_FIM_PROG {cl_insert_footer(cl);}
     ;
-
-
-/* retorno: T_RETORNO expressao  //{printf("Retorno\n");} */
 
 read: T_READ
     {cl_insert_invokeread(cl, ts->prim->simb.nome);}
     T_INI_PARENTESES
     variavel
-    {if ($4) cl_insert_store(cl, $4);}
+    {cl_insert_store(cl, ts, $4);}
     T_FIM_PARENTESES
     ;
 
@@ -280,20 +252,32 @@ termo: fator                {$$ = $1;}
     | termo T_OP_MULT termo {cl_insert_op(cl, $1, $3, $2); $$ = $1;}
     ;
 
-/* termo_2: %empty
-    | T_OP_MULT fator {cl_insert(cl, $1);} termo_2 */
-    ;
-
 tipo: T_SIMPLES 
     ;
     /* | tipo_agregado */
 
+/* retorno: T_RETORNO expressao  //{printf("Retorno\n");} */
+
 /* tipo_agregado: T_DEF_ARRAY T_DEF_ARRAY_TIPO tipo  //{printf("Tipo agregado\n");}
     | T_DEF_ARRAY T_SELETOR_INI T_INT_LIT T_INTERVALO T_INT_LIT T_SELETOR_FIM T_DEF_ARRAY_TIPO tipo  //{printf("Tipo agregado\n");} */
 
-variavel: T_ID seletor {$$ = ts_find_symbol(ts, $1, VARIAVEL);}
+variavel: T_ID seletor {$$ = $1;}
     ;
 
+/* chamada: T_ID T_INI_PARENTESES lista_de_expressoes T_FIM_PARENTESES  //{printf("Chamada\n");} */
+
+/* lista_de_parametros: parametro lista_de_parametros_2  //{printf("Lista de parâmetos\n");} */
+    /* | lista_de_parametros_2  //{printf("Lista de parâmetos\n");} */
+
+/* lista_de_parametros_2: %empty */
+    /* | T_FIM_INSTRUCAO parametro lista_de_parametros_2 */
+
+/* parametro: T_DEF_VAR lista_de_ids T_DEF_TIPO T_SIMPLES  //{printf("Parâmetro\n");} */
+    /* | lista_de_ids T_DEF_TIPO T_SIMPLES  //{printf("Parâmetro\n");} */
+
+/* declaracao_de_funcao: T_FUNC T_ID T_INI_PARENTESES lista_de_parametros T_FIM_PARENTESES T_DEF_TIPO T_SIMPLES T_FIM_INSTRUCAO corpo  //{printf("Declaração de função\n");} */
+
+/* declaracao_de_procedimento: T_PROC T_ID T_INI_PARENTESES lista_de_parametros T_FIM_PARENTESES T_FIM_INSTRUCAO corpo  //{printf("Declaração de procedimento\n");} */
 
 
 %%
@@ -338,14 +322,19 @@ int main(int argc, char* argv[]){
         yyparse();
     } while(!feof(yyin));
 
-    printf(MSG_COMPILE_SUCCESS);
-    cl_write(cl, outfilename);
+    if (get_err_count() > 0){
+        perr(NORMAL_COLOR, "Houve %d erros de compilação. Arquivo não foi compilado\n", get_err_count());
+    }else{
+        cl_write(cl, outfilename);
+        printf(MSG_COMPILE_SUCCESS);
+    }
     /* ts_print(tabela); */
 
     cl_free(cl);
     ts_free(ts);
     free(outfilename);
-    return 0;
+
+    return get_err_count() > 0;
 }
 
 void yyerror(const char* s) {

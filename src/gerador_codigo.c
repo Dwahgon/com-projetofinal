@@ -1,8 +1,9 @@
-#include "gerador_codigo.h"
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include "gerador_codigo.h"
+#include "errs.h"
 
 void cl_insert_formatted(code_list *cl, const char *formatstr, ...);
 void cl_assert_not_null(code_list *cl);
@@ -128,9 +129,15 @@ void cl_insert_footer(code_list *cl)
     cl_insert(cl, FOOTER);
 }
 
-void cl_insert_store(code_list *cl, simbolo *var)
+void cl_insert_store(code_list *cl, tabelasimbolos *ts, char *var)
 {
-    cl_insert_formatted(cl, STORE, symbtype_char(var->tipo), var->id);
+    simbolo *s;
+    if (!(s = ts_find_symbol(ts, var, VARIAVEL)))
+    {
+        perr(ERROR_COLOR, ERRMSG_VARIABLE_NOT_DECLARED, var);
+        return;
+    }
+    cl_insert_formatted(cl, STORE, symbtype_char(s->tipo), s->id);
 }
 
 void cl_insert_bipush(code_list *cl, int value)
@@ -143,9 +150,16 @@ void cl_insert_if(code_list *cl, char *ifcom, int label)
     cl_insert_formatted(cl, "%sL%d\n", ifcom, label);
 }
 
-void cl_insert_load(code_list *cl, simbolo *var)
+simbolo *cl_insert_load(code_list *cl, tabelasimbolos *ts, char *var)
 {
-    cl_insert_formatted(cl, LOAD, symbtype_char(var->tipo), var->id);
+    simbolo *s;
+    if (!(s = ts_find_symbol(ts, var, VARIAVEL)))
+    {
+        perr(ERROR_COLOR, ERRMSG_VARIABLE_NOT_DECLARED, var);
+        return NULL;
+    }
+    cl_insert_formatted(cl, LOAD, symbtype_char(s->tipo), s->id);
+    return s;
 }
 
 void cl_insert_goto(code_list *cl, int label)

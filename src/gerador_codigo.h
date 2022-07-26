@@ -13,6 +13,7 @@
 #define ERRMSG_CLN_NULL "Argumento cln é um ponteiro nulo\n"
 #define ERRMSG_ICONST_INVALID "cl_insert_iconst: argumento 'value' deve estar entre 0 e 5, incluindo estes\n"
 #define ERRMSG_INVALID_TYPE "symbtype_char: argumento inválido. Valor passado: %i\n"
+#define ERRMSG_VARIABLE_NOT_DECLARED "Variável %s não foi declarada\n"
 
 #define CMD_BUFF_SIZE 4096
 
@@ -124,14 +125,14 @@ typedef struct _code_list
 code_list *cl_malloc();
 void cl_insert_header(code_list *cl, char *classname);
 void cl_insert_footer(code_list *cl);
-void cl_insert_store(code_list *cl, simbolo *var);
+void cl_insert_store(code_list *cl, tabelasimbolos *ts, char *var);
 void cl_insert_bipush(code_list *cl, int value);
 void cl_insert_ldc_string(code_list *cl, char *value);
 void cl_insert_ldc_float(code_list *cl, float value);
 void cl_insert_invokeprint(code_list *cl, tipo_simbolo tipo, int newline);
 void cl_insert_invokeread(code_list *cl, char *class);
 void cl_insert_const(code_list *cl, int value, tipo_simbolo type);
-void cl_insert_load(code_list *cl, simbolo *var);
+simbolo *cl_insert_load(code_list *cl, tabelasimbolos *ts, char *var);
 void cl_insert_goto(code_list *cl, int label);
 void cl_insert_lbl(code_list *cl, int label);
 void cl_insert_if(code_list *cl, char *ifcom, int labelnum);

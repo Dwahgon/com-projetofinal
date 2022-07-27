@@ -12,7 +12,7 @@
 #define ERRMSG_CL_NULL "Argumento cl é um ponteiro nulo\n"
 #define ERRMSG_CLN_NULL "Argumento cln é um ponteiro nulo\n"
 #define ERRMSG_ICONST_INVALID "cl_insert_iconst: argumento 'value' deve estar entre 0 e 5, incluindo estes\n"
-#define ERRMSG_INVALID_TYPE "symbtype_char: argumento inválido. Valor passado: %i\n"
+#define ERRMSG_INVALID_TYPE "Argumento inválido para tipo de símbolo. Valor passado: %i\n"
 #define ERRMSG_VARIABLE_NOT_DECLARED "Variável %s não foi declarada\n"
 
 #define CMD_BUFF_SIZE 4096
@@ -72,6 +72,8 @@
 #define STORE "%cstore %d\n"
 #define CONST "%cconst_%d\n"
 #define LOAD "%cload %d\n"
+#define POP "pop%s\n"
+#define NEWARRAY "newarray %s\n"
 #define GOTO "goto L%d\n"
 #define ADD "add\n"
 #define MUL "mul\n"
@@ -99,6 +101,7 @@
 #define INVOKE_READ "invokestatic %s.read()I \n"
 
 #include "tabela_simbolos.h"
+#include "strlist.h"
 
 typedef enum _relops
 {
@@ -129,14 +132,17 @@ void cl_insert_store(code_list *cl, tabelasimbolos *ts, char *var);
 void cl_insert_bipush(code_list *cl, int value);
 void cl_insert_ldc_string(code_list *cl, char *value);
 void cl_insert_ldc_float(code_list *cl, float value);
-void cl_insert_invokeprint(code_list *cl, tipo_simbolo tipo, int newline);
-void cl_insert_invokeread(code_list *cl, char *class);
-void cl_insert_const(code_list *cl, int value, tipo_simbolo type);
+void cl_insert_invokeprint(code_list *cl, primitive_type tipo, int newline);
+void cl_insert_invokeread(code_list *cl);
+void cl_insert_pop(code_list *cl, int pop2);
+void cl_insert_const(code_list *cl, int value, symbol_type type);
+void cl_declarations(code_list *cl, tabelasimbolos *ts, strlist *sl, symbol_type type);
 simbolo *cl_insert_load(code_list *cl, tabelasimbolos *ts, char *var);
 void cl_insert_goto(code_list *cl, int label);
 void cl_insert_lbl(code_list *cl, int label);
 void cl_insert_if(code_list *cl, char *ifcom, int labelnum);
-void cl_insert_op(code_list *cl, tipo_simbolo type1, tipo_simbolo type2, char *op);
+void cl_insert_op(code_list *cl, primitive_type type1, primitive_type type2, char *op);
+// void cl_insert_newarray(code_list *cl, primitive_type type);
 void cl_insert_oprel(code_list *cl, char *ifop);
 void cl_insert(code_list *cl, char *code);
 void cl_clear(code_list *cl);

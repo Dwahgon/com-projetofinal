@@ -2,11 +2,12 @@
 #include <string.h>
 #include <stdio.h>
 #include "tabela_simbolos.h"
+#include "strlist.h"
 #include "errs.h"
 
 int symbol_id = 0;
 
-simbolo *ts_insert(tabelasimbolos *ts, char *nome, tipo_simbolo tipo, funcao_simbolo funcao);
+simbolo *ts_insert(tabelasimbolos *ts, char *nome, symbol_type type);
 simbolo *ts_inserir_simbolo(tabelasimbolos *ts, simbolo *simb);
 void ts_assert_not_null(tabelasimbolos *ts);
 void lts_assert_not_null(linhatabelasimbolos *lts);
@@ -28,21 +29,19 @@ tabelasimbolos *ts_malloc()
     return novatabela;
 }
 
-simbolo *ts_declare(tabelasimbolos *ts, char *name, tipo_simbolo type, funcao_simbolo function)
+simbolo *ts_declare(tabelasimbolos *ts, char *name, symbol_type type)
 {
     ts_assert_not_null(ts);
 
-    simbolo *s;
-    if ((s = ts_find_symbol(ts, name, function)))
+    if (ts_find_symbol(ts, name))
     {
         perr(ERROR_COLOR, ERRMSG_VAR_ALREADY_DECLARED, name);
         return NULL;
     }
-
-    return ts_insert(ts, name, type, function);
+    return ts_insert(ts, name, type);
 }
 
-simbolo *ts_insert(tabelasimbolos *ts, char *nome, tipo_simbolo tipo, funcao_simbolo funcao)
+simbolo *ts_insert(tabelasimbolos *ts, char *nome, symbol_type type)
 {
     char *nomecp;
     if (!(nomecp = (char *)malloc(sizeof(char) * strlen(nome))))
@@ -52,16 +51,16 @@ simbolo *ts_insert(tabelasimbolos *ts, char *nome, tipo_simbolo tipo, funcao_sim
     }
     strcpy(nomecp, nome);
 
-    return ts_inserir_simbolo(ts, &(simbolo){nomecp, symbol_id++, tipo, funcao});
+    return ts_inserir_simbolo(ts, &(simbolo){nomecp, symbol_id++, type});
 }
 
-simbolo *ts_find_symbol(tabelasimbolos *ts, char *name, funcao_simbolo funcao)
+simbolo *ts_find_symbol(tabelasimbolos *ts, char *name)
 {
     ts_assert_not_null(ts);
 
     for (linhatabelasimbolos *lts = ts->prim; lts; lts = lts->prox)
     {
-        if (strcmp(lts->simb.nome, name) == 0 && lts->simb.funcao == funcao)
+        if (strcmp(lts->simb.nome, name) == 0)
             return &lts->simb;
     }
     return NULL;

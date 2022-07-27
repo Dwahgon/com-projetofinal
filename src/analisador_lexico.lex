@@ -148,11 +148,12 @@ DIGITO  [0-9]
 
 "array" {
     avancar_coluna(yytext);
-    
+    return T_DEF_ARRAY;
 }
 
 "of"    {
     avancar_coluna(yytext);
+    return T_DEF_ARRAY_TIPO;
 }
 
 "[" {
@@ -235,11 +236,11 @@ DIGITO  [0-9]
 "integer"|"real"|"boolean"  {
     avancar_coluna(yytext);
     if (strcmp(yytext, "integer") == 0)
-        yylval.symboltypeval = INTEIRO;
+        yylval.symboltypeval = (symbol_type){INTEIRO, 0};
     else if (strcmp(yytext, "real") == 0)
-        yylval.symboltypeval = FLUTUANTE;
+        yylval.symboltypeval = (symbol_type){FLUTUANTE, 0};
     else 
-        yylval.symboltypeval = BOOLEANA;
+        yylval.symboltypeval = (symbol_type){BOOLEANA, 0};
     return T_SIMPLES;
 }
 
@@ -251,7 +252,7 @@ DIGITO  [0-9]
 
 " .. "    {
     avancar_coluna(yytext);
-    // return T_INTERVALO;
+    return T_INTERVALO;
 }
 
 {DIGITO}+  {

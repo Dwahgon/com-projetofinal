@@ -4,9 +4,8 @@ program teste;
     var valor1 : integer;
     var valor2 : integer;
     var valor_r : real;
-    // var vetor : array[0 .. 10] of integer;
-    // var matriz : array[0 .. 10] of integer;
-    // var retorno_main : integer;
+    var vetor : array[0 .. 10] of integer;
+    var matriz : array[0 .. 10] of integer;
 
     var a,g,i : integer;
 begin
@@ -15,10 +14,9 @@ begin
     valor1 := 0;
     valor2 := 0;
     valor_r := 0.0;
-    // vetor := {0,0,0,0,0,0,0,0,0,0};
     a := 5;
-    //vetor[a] := 80;
-    //print(vetor[a]);
+    vetor[a] := 80;
+    print(vetor[a]);
 
     valor_r := 1.5 + 0.3;
 

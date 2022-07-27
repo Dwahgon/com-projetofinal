@@ -11,9 +11,10 @@ void cl_assert_not_null(code_list *cl);
 code_list_node *cln_malloc(char *code);
 void cln_assert_not_null(code_list_node *cln);
 void cln_free(code_list_node *cln);
-char symbtype_char(tipo_simbolo tipo);
+char symbtype_char(symbol_type *tipo);
 
 int labelnum = 0;
+char *class_name;
 
 code_list *cl_malloc()
 {
@@ -103,20 +104,21 @@ void cl_insert_ldc_string(code_list *cl, char *value)
     cl_insert_formatted(cl, LDC_S, value);
 }
 
-void cl_insert_header(code_list *cl, char *classname)
+void cl_insert_header(code_list *cl, char *cn)
 {
-    cl_insert_formatted(cl, HEADER_CLASS, classname);
+    class_name = cn;
+    cl_insert_formatted(cl, HEADER_CLASS, cn);
     cl_insert_formatted(cl, "%s%s", READ_FUNC, HEADER_AFTER_CLASS);
 }
 
-void cl_insert_const(code_list *cl, int value, tipo_simbolo type)
+void cl_insert_const(code_list *cl, int value, symbol_type type)
 {
-    if (value > (type == FLUTUANTE ? 3 : 5) || value < 0)
+    if (value > (type.prim_type == FLUTUANTE ? 3 : 5) || value < 0)
     {
         fprintf(stderr, ERRMSG_ICONST_INVALID);
         return;
     }
-    cl_insert_formatted(cl, CONST, symbtype_char(type), value);
+    cl_insert_formatted(cl, CONST, symbtype_char(&type), value);
 }
 
 void cl_insert_lbl(code_list *cl, int label)
@@ -132,12 +134,12 @@ void cl_insert_footer(code_list *cl)
 void cl_insert_store(code_list *cl, tabelasimbolos *ts, char *var)
 {
     simbolo *s;
-    if (!(s = ts_find_symbol(ts, var, VARIAVEL)))
+    if (!(s = ts_find_symbol(ts, var)))
     {
         perr(ERROR_COLOR, ERRMSG_VARIABLE_NOT_DECLARED, var);
         return;
     }
-    cl_insert_formatted(cl, STORE, symbtype_char(s->tipo), s->id);
+    cl_insert_formatted(cl, STORE, symbtype_char(&s->type), s->id);
 }
 
 void cl_insert_bipush(code_list *cl, int value)
@@ -153,13 +155,18 @@ void cl_insert_if(code_list *cl, char *ifcom, int label)
 simbolo *cl_insert_load(code_list *cl, tabelasimbolos *ts, char *var)
 {
     simbolo *s;
-    if (!(s = ts_find_symbol(ts, var, VARIAVEL)))
+    if (!(s = ts_find_symbol(ts, var)))
     {
         perr(ERROR_COLOR, ERRMSG_VARIABLE_NOT_DECLARED, var);
         return NULL;
     }
-    cl_insert_formatted(cl, LOAD, symbtype_char(s->tipo), s->id);
+    cl_insert_formatted(cl, LOAD, symbtype_char(&s->type), s->id);
     return s;
+}
+
+void cl_insert_pop(code_list *cl, int pop2)
+{
+    cl_insert_formatted(cl, POP, (pop2) ? "2" : "");
 }
 
 void cl_insert_goto(code_list *cl, int label)
@@ -167,7 +174,7 @@ void cl_insert_goto(code_list *cl, int label)
     cl_insert_formatted(cl, GOTO, label);
 }
 
-void cl_insert_invokeprint(code_list *cl, tipo_simbolo tipo, int newline)
+void cl_insert_invokeprint(code_list *cl, primitive_type tipo, int newline)
 {
     cl_assert_not_null(cl);
 
@@ -189,15 +196,15 @@ void cl_insert_invokeprint(code_list *cl, tipo_simbolo tipo, int newline)
     }
 }
 
-void cl_insert_invokeread(code_list *cl, char *class)
+void cl_insert_invokeread(code_list *cl)
 {
-    cl_insert_formatted(cl, INVOKE_READ, class);
+    cl_insert_formatted(cl, INVOKE_READ, class_name);
 }
 
-void cl_insert_op(code_list *cl, tipo_simbolo type1, tipo_simbolo type2, char *op)
+void cl_insert_op(code_list *cl, primitive_type type1, primitive_type type2, char *op)
 {
     if (type1 == type2)
-        cl_insert_formatted(cl, "%c%s", symbtype_char(type1), op);
+        cl_insert_formatted(cl, "%c%s", symbtype_char(&(symbol_type){type1, 0}), op);
 }
 
 void cl_insert_oprel(code_list *cl, char *ifop)
@@ -208,6 +215,36 @@ void cl_insert_oprel(code_list *cl, char *ifop)
     int lbl2 = generate_label();
     cl_insert_formatted(cl, OPRELBODY, ifop, lbl1, lbl2, lbl1, lbl2);
 }
+
+void cl_declarations(code_list *cl, tabelasimbolos *ts, strlist *sl, symbol_type type)
+{
+    for (strlist *l = sl; l; l = l->next)
+    {
+        if (!ts_declare(ts, l->val, type))
+            continue;
+
+        cl_insert_const(cl, 0, type);
+        cl_insert_store(cl, ts, l->val);
+    }
+    sl_clear(sl);
+}
+
+// void cl_insert_newarray(code_list *cl, primitive_type type){
+//     switch(type){
+//         case BOOLEANA:
+//             cl_insert_formatted(cl, NEWARRAY, "boolean");
+//             break;
+//         case INTEIRO:
+//             cl_insert_formatted(cl, NEWARRAY, "int");
+//             break;
+//         case FLUTUANTE:
+//             cl_insert_formatted(cl, NEWARRAY, "float");
+//             break;
+//         default:
+//             perr(ERROR_COLOR, ERRMSG_INVALID_TYPE, type);
+//             break;
+//     }
+// }
 
 void cl_write(code_list *cl, char *filename)
 {
@@ -262,9 +299,12 @@ void cl_insert_formatted(code_list *cl, const char *formatstr, ...)
     cl_insert(cl, buff);
 }
 
-char symbtype_char(tipo_simbolo tipo)
+char symbtype_char(symbol_type *tipo)
 {
-    switch (tipo)
+    if (tipo->isarray > 0)
+        return 'i';
+
+    switch (tipo->prim_type)
     {
     case BOOLEANA:
     case INTEIRO:
@@ -272,7 +312,7 @@ char symbtype_char(tipo_simbolo tipo)
     case FLUTUANTE:
         return 'f';
     default:
-        fprintf(stderr, ERRMSG_INVALID_TYPE, tipo);
+        fprintf(stderr, ERRMSG_INVALID_TYPE, tipo->prim_type);
         break;
     }
     return 'i';

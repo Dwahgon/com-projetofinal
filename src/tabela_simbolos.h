@@ -8,27 +8,26 @@
 #define ERRMSG_LTS_NULL "Argumento lts é um ponteiro nulo\n"
 #define ERRMSG_VAR_ALREADY_DECLARED "Variável %s já foi declarada\n"
 
-typedef enum _tipo_simbolo
+typedef enum _primitive_type
 {
     INTEIRO,
     FLUTUANTE,
     BOOLEANA,
     STRING,
     VAZIO
-} tipo_simbolo;
+} primitive_type;
 
-typedef enum _funcao_simbolo
+typedef struct _symbol_type
 {
-    VARIAVEL,
-    PROGRAMA
-} funcao_simbolo;
+    primitive_type prim_type;
+    int isarray;
+} symbol_type;
 
 typedef struct _simbolo
 {
     char *nome;
     int id;
-    tipo_simbolo tipo;
-    funcao_simbolo funcao;
+    symbol_type type;
 } simbolo;
 
 typedef struct _linhatabelasimbolos
@@ -45,8 +44,8 @@ typedef struct _tabelasimbolos
 } tabelasimbolos;
 
 tabelasimbolos *ts_malloc();
-simbolo *ts_declare(tabelasimbolos *ts, char *nome, tipo_simbolo tipo, funcao_simbolo funcao);
-simbolo *ts_find_symbol(tabelasimbolos *ts, char *name, funcao_simbolo funcao);
+simbolo *ts_declare(tabelasimbolos *ts, char *name, symbol_type type);
+simbolo *ts_find_symbol(tabelasimbolos *ts, char *name);
 void ts_clear(tabelasimbolos *ts);
 void ts_free(tabelasimbolos *ts);
 

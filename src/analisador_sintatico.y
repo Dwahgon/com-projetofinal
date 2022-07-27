@@ -91,7 +91,7 @@ tabelasimbolos *ts;
 
 %%
 
-atribuicao: variavel T_ATRIBUICAO expressao  {cl_insert_store(cl, ts, $1);}
+atribuicao: variavel T_ATRIBUICAO expressao  {cl_insert_assigment(cl, ts, $1, $3);}
     ;
 
 /* array_lit: T_INI_ARRAY_LIT lista_de_expressoes T_FIM_ARRAY_LIT  //{printf("Array lit\n");} */

@@ -136,6 +136,19 @@ void cl_insert_footer(code_list *cl)
     cl_insert(cl, FOOTER);
 }
 
+void cl_insert_assigment(code_list *cl, tabelasimbolos *ts, char *var, symbol_type type)
+{
+    simbolo *s;
+    if (!(s = ts_find_symbol(ts, var)))
+    {
+        perr(ERROR_COLOR, ERRMSG_VARIABLE_NOT_DECLARED, var);
+        return;
+    }
+    if (s->type.prim_type != type.prim_type)
+        pwarn(WARNING_COLOR, WARNMSG_DIFFTYPE);
+    cl_insert_formatted(cl, STORE, symbtype_char(&s->type), s->id);
+}
+
 void cl_insert_store(code_list *cl, tabelasimbolos *ts, char *var)
 {
     simbolo *s;

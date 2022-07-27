@@ -15,6 +15,8 @@
 #define ERRMSG_INVALID_TYPE "Argumento inválido para tipo de símbolo. Valor passado: %i\n"
 #define ERRMSG_VARIABLE_NOT_DECLARED "Variável %s não foi declarada\n"
 
+#define WARNMSG_DIFFTYPE "Atribuindo valor para variável de tipos diferentes\n"
+
 #define CMD_BUFF_SIZE 4096
 
 #define HEADER_AFTER_CLASS ".method public <init>()V\n"                         \
@@ -131,6 +133,7 @@ void cl_insert_header(code_list *cl, char *classname);
 void cl_insert_footer(code_list *cl);
 void cl_insert_store(code_list *cl, tabelasimbolos *ts, char *var);
 // void cl_insert_bipush(code_list *cl, int value);
+void cl_insert_assigment(code_list *cl, tabelasimbolos *ts, char *var, symbol_type type);
 void cl_insert_ldc_int(code_list *cl, int value);
 void cl_insert_ldc_string(code_list *cl, char *value);
 void cl_insert_ldc_float(code_list *cl, float value);

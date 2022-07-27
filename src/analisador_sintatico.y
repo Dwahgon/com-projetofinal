@@ -209,8 +209,8 @@ lista_de_ids_2: %empty {$$ = NULL;}
     | T_SEPARADOR_INSTRUCAO lista_de_ids {$$ = $2;}
     ;
 
-literal: T_BOOL_LIT {cl_insert_bipush(cl, (int)$1); $$ = (symbol_type){BOOLEANA, 0};}
-    | T_INT_LIT     {cl_insert_bipush(cl, $1); $$ = (symbol_type){INTEIRO, 0};}
+literal: T_BOOL_LIT {cl_insert_ldc_int(cl, (int)$1); $$ = (symbol_type){BOOLEANA, 0};}
+    | T_INT_LIT     {cl_insert_ldc_int(cl, $1); $$ = (symbol_type){INTEIRO, 0};}
     | T_FLOAT_LIT   {cl_insert_ldc_float(cl, $1); $$ = (symbol_type){FLUTUANTE, 0};}//{printf("Literal\n");}
     | T_STRING_LIT  {cl_insert_ldc_string(cl, $1); $$ = (symbol_type){STRING, 0};}
     ;

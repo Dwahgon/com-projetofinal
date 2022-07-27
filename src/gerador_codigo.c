@@ -94,6 +94,11 @@ void cl_free(code_list *cl)
     free(cl);
 }
 
+void cl_insert_ldc_int(code_list *cl, int value)
+{
+    cl_insert_formatted(cl, LDC_I, value);
+}
+
 void cl_insert_ldc_float(code_list *cl, float value)
 {
     cl_insert_formatted(cl, LDC_F, value);

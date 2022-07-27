@@ -69,6 +69,7 @@
 #define BIPUSH "bipush %d\n"
 #define LDC_S "ldc %s\n"
 #define LDC_F "ldc %f\n"
+#define LDC_I "ldc %d\n"
 #define STORE "%cstore %d\n"
 #define CONST "%cconst_%d\n"
 #define LOAD "%cload %d\n"
@@ -129,7 +130,8 @@ code_list *cl_malloc();
 void cl_insert_header(code_list *cl, char *classname);
 void cl_insert_footer(code_list *cl);
 void cl_insert_store(code_list *cl, tabelasimbolos *ts, char *var);
-void cl_insert_bipush(code_list *cl, int value);
+// void cl_insert_bipush(code_list *cl, int value);
+void cl_insert_ldc_int(code_list *cl, int value);
 void cl_insert_ldc_string(code_list *cl, char *value);
 void cl_insert_ldc_float(code_list *cl, float value);
 void cl_insert_invokeprint(code_list *cl, primitive_type tipo, int newline);

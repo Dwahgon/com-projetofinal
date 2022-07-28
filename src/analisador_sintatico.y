@@ -17,7 +17,7 @@
                             DEFAULT_OUT_FILE \
                             "\n"
 #define MSG_COMPILE_SUCCESS "Analisado sem erros\n"
-#define ERRMSG_COMPILE "Erro sintático na linha %d e coluna %d: %s\n"
+#define ERRMSG_COMPILE "Erro sintático: %s\n"
 #define ERRMSG_MALLOC_OUTFILENAME "Houve um erro ao tentar alocar memória para o nome do arquivo de saída\n"
 
 extern int yylex();
@@ -94,7 +94,6 @@ tabelasimbolos *ts;
 atribuicao: variavel T_ATRIBUICAO expressao  {cl_insert_assigment(cl, ts, $1, $3);}
     ;
 
-/* array_lit: T_INI_ARRAY_LIT lista_de_expressoes T_FIM_ARRAY_LIT  //{printf("Array lit\n");} */
 
 comando: atribuicao  //{printf("Comando\n");}
     | condicional  //{printf("Comando\n");}
@@ -196,11 +195,6 @@ lista_de_comandos: %empty //{printf("Lista de comandos\n");}
     | comando T_FIM_INSTRUCAO lista_de_comandos  //{printf("Lista de comandos\n");}
     ;
 
-/* lista_de_expressoes: %empty //{printf("Lista de expressões\n");}
-    | expressao lista_de_expressoes_2  //{printf("Lista de expressões\n");} */
-
-/* lista_de_expressoes_2: %empty
-    | T_SEPARADOR_INSTRUCAO expressao lista_de_expressoes_2 */
 
 lista_de_ids: T_ID lista_de_ids_2 {$$ = sl_insert($2, $1);}
     ;
@@ -258,6 +252,14 @@ tipo_agregado: T_DEF_ARRAY T_SELETOR_INI expressao T_INTERVALO expressao T_SELET
 
 variavel: T_ID seletor {$$ = $1;}
     ;
+
+/* lista_de_expressoes: %empty //{printf("Lista de expressões\n");}
+    | expressao lista_de_expressoes_2  //{printf("Lista de expressões\n");} */
+
+/* lista_de_expressoes_2: %empty
+    | T_SEPARADOR_INSTRUCAO expressao lista_de_expressoes_2 */
+
+/* array_lit: T_INI_ARRAY_LIT lista_de_expressoes T_FIM_ARRAY_LIT  //{printf("Array lit\n");} */
 
 /* retorno: T_RETORNO expressao  //{printf("Retorno\n");} */
 
@@ -320,7 +322,7 @@ int main(int argc, char* argv[]){
     } while(!feof(yyin));
 
     if (get_err_count() > 0){
-        perr(NORMAL_COLOR, "Houve %d erros de compilação. Arquivo não foi compilado\n", get_err_count());
+        fprintf(stderr, "Houve %d erros de compilação. Arquivo não foi compilado\n", get_err_count());
     }else{
         cl_write(cl, outfilename);
         printf(MSG_COMPILE_SUCCESS);
@@ -335,7 +337,7 @@ int main(int argc, char* argv[]){
 }
 
 void yyerror(const char* s) {
-	perr(ERROR_COLOR, ERRMSG_COMPILE, linha, coluna, s);
+	perr(ERROR_COLOR, ERRMSG_COMPILE, s);
     /* ts_mostrar_erros(tabela); */
 	exit(1);
 }

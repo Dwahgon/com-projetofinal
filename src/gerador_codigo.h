@@ -14,8 +14,10 @@
 #define ERRMSG_ICONST_INVALID "cl_insert_iconst: argumento 'value' deve estar entre 0 e 5, incluindo estes\n"
 #define ERRMSG_INVALID_TYPE "Argumento inválido para tipo de símbolo. Valor passado: %i\n"
 #define ERRMSG_VARIABLE_NOT_DECLARED "Variável %s não foi declarada\n"
-
-#define WARNMSG_DIFFTYPE "Atribuindo valor para variável de tipos diferentes\n"
+#define ERRMSG_DIFFTYPE "Atribuindo valor para variável de tipos diferentes\n"
+#define ERRMSG_ATTRIB_STRING "Tentando realizar atribuição com strings (não é suportado)\n"
+#define ERRMSG_OP_STRING "Tentando realizar operações com strings (não suportado)\n"
+#define ERRMSG_OP_DIFFTYPES "Tentando realizar operações com valores de tipos diferentes (não suportado)\n"
 
 #define CMD_BUFF_SIZE 4096
 

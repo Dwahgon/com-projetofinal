@@ -8,6 +8,7 @@
 #include "tabela_simbolos.h"
 #include "analisador_sintatico.tab.h"
 #include "contador_linha.h"
+#include "errs.h"
 
 extern int linha;
 extern int coluna;
@@ -276,7 +277,7 @@ DIGITO  [0-9]
 }
 
 . {
-    fprintf(stderr, "Erro léxico na linha %d e coluna %d: %s\n", linha, coluna, yytext);
+    perr(ERROR_COLOR, "Símbolo não reconhecido: %s\n", yytext);
     return yytext[0];
 }
 

@@ -145,7 +145,15 @@ void cl_insert_assigment(code_list *cl, tabelasimbolos *ts, char *var, symbol_ty
         return;
     }
     if (s->type.prim_type != type.prim_type)
-        pwarn(WARNING_COLOR, WARNMSG_DIFFTYPE);
+    {
+        perr(ERROR_COLOR, ERRMSG_DIFFTYPE);
+        return;
+    }
+    if (type.prim_type == STRING)
+    {
+        perr(ERROR_COLOR, ERRMSG_ATTRIB_STRING);
+        return;
+    }
     cl_insert_formatted(cl, STORE, symbtype_char(&s->type), s->id);
 }
 
@@ -221,6 +229,16 @@ void cl_insert_invokeread(code_list *cl)
 
 void cl_insert_op(code_list *cl, primitive_type type1, primitive_type type2, char *op)
 {
+    if (type1 == STRING || type2 == STRING)
+    {
+        perr(ERROR_COLOR, ERRMSG_OP_STRING);
+        return;
+    }
+    if (type1 != type2)
+    {
+        perr(ERROR_COLOR, ERRMSG_OP_DIFFTYPES);
+        return;
+    }
     if (type1 == type2)
         cl_insert_formatted(cl, "%c%s", symbtype_char(&(symbol_type){type1, 0}), op);
 }

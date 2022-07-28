@@ -2,6 +2,9 @@
 #include "errs.h"
 #include "contador_linha.h"
 
+void pformatted(char *errcolor, const char *format, ...);
+void pvformatted(char *errcolor, const char *format, va_list valist);
+
 extern int linha;
 extern int coluna;
 int errcount = 0;
@@ -26,11 +29,18 @@ void pformatted(char *errcolor, const char *format, ...)
     va_end(valist);
 }
 
+void pvformatted(char *errcolor, const char *format, va_list valist)
+{
+    fprintf(stderr, errcolor);
+    vfprintf(stderr, format, valist);
+    fprintf(stderr, COLOR_RESET);
+}
+
 void pwarn(char *errcolor, const char *format, ...)
 {
     va_list valist;
     va_start(valist, format);
-    pformatted(errcolor, format, valist);
+    pvformatted(errcolor, format, valist);
     va_end(valist);
     pformatted(LOCATION_COLOR, MSG_LOCATION, linha, coluna);
 }
@@ -39,7 +49,7 @@ void perr(char *errcolor, const char *format, ...)
 {
     va_list valist;
     va_start(valist, format);
-    pformatted(errcolor, format, valist);
+    pvformatted(errcolor, format, valist);
     va_end(valist);
     pformatted(LOCATION_COLOR, MSG_LOCATION, linha, coluna);
     errcount++;

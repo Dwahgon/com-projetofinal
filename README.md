@@ -13,5 +13,6 @@ $ make
 # Running example
 
 ```bash
-$ bin/compilador-projetofinal examples/exemplocorrigido.txt
+$ make compile_and_assemble
+$ java -cp bin/ teste
 ```
